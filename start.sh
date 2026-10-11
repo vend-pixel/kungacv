@@ -20,8 +20,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND="$ROOT/backend"
-CLIENT="$ROOT/frontend/flowcv_client"
-ADMIN="$ROOT/frontend/flowcv_admin"
+CLIENT="$ROOT/frontend/kungacv_client"
+ADMIN="$ROOT/frontend/kungacv_admin"
 
 RUN_DIR="$ROOT/.run"
 LOG_DIR="$ROOT/.logs"

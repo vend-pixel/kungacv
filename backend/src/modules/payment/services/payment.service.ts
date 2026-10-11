@@ -186,12 +186,12 @@ export class PaymentService {
   ): boolean {
     if (!rawBody || !signature) return false;
 
-    const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
+    const expected = createHmac('sha256', secret).update(rawBody as any).digest('hex');
 
     try {
       return timingSafeEqual(
-        Buffer.from(expected.toLowerCase(), 'hex'),
-        Buffer.from(String(signature).toLowerCase(), 'hex'),
+        Buffer.from(expected.toLowerCase(), 'hex') as any,
+        Buffer.from(String(signature).toLowerCase(), 'hex') as any,
       );
     } catch {
       return false;

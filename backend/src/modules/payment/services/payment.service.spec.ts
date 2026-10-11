@@ -49,7 +49,7 @@ describe('PaymentService', () => {
   });
 
   const sign = (rawBody: Buffer, secret = WEBHOOK_SECRET) =>
-    createHmac('sha256', secret).update(rawBody).digest('hex');
+    createHmac('sha256', secret).update(rawBody as any).digest('hex');
 
   describe('getPlans', () => {
     it('falls back to 5000 MWK / 30 days when config is empty', async () => {

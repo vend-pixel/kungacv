@@ -1,6 +1,7 @@
 "use client";
 
 import Nav from "@components/Nav";
+import { API_BASE } from "@utils/api";
 import { addUserData } from "@redux/auth/features";
 import { useAppSelector } from "@redux/hooks";
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ const LoginPage = () => {
             return alert("Email and password required");
         }
 
-        const url = "https://flow-cv-backend.onrender.com";
+        const url = API_BASE;
 
         setLoading(true);
 

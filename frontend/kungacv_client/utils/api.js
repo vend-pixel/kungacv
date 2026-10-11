@@ -1,7 +1,7 @@
 // Shared client API config.
-// Existing auth pages keep their hardcoded URL (kept as-is intentionally);
-// new code reads from env with the deployed backend as fallback.
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://flow-cv-backend.onrender.com";
+// All client requests share the environment-driven API base.
+// The deployed KungaCV backend is used only when no environment value is set.
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-backend.onrender.com";
 
 // Display fallbacks — the pricing page prefers the live `/payments/plans` response.
 export const PRO_PRICE_MWK = Number(process.env.NEXT_PUBLIC_PRO_PRICE_MWK) || 5000;

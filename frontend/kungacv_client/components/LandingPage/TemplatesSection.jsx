@@ -6,18 +6,18 @@ import React, { useEffect, useState } from "react";
 const TemplatesSection = () => {
     const [currentImage, setCurrentImage] = useState(0);
     const images = [
-        "https://prod.flowcvassets.com/resume-templates/tlz6h4qf2ti7uttcfrcf0/1280.webp",
-        "https://prod.flowcvassets.com/resume-templates/46sjyo19sjwkgmn-g56z5/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/yrf-1jligslm-ta_zmyji/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/yivr5ujjrocluhf4nbdul/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/v6g7rscizwqa8qitxcadv/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/qh_kpltbeapqidbrq-p2d/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/hzvvtfs-fjct-xo378ip/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/gfra5vynu_7blt4i5wfpi/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/wocpvkrglpwnlc9mw5kuq/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/10j8m87ohtyk26o66ps3e/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/mwo5rdzygyzgpjhr1vdnr/2560.webp",
-        "https://prod.flowcvassets.com/resume-templates/wtlzsihj8hcstmoci6upa/2560.webp",
+    "/templates/template-01.webp",
+    "/templates/template-02.webp",
+    "/templates/template-03.webp",
+    "/templates/template-04.webp",
+    "/templates/template-05.webp",
+    "/templates/template-06.webp",
+    "/templates/template-07.webp",
+    "/templates/template-08.webp",
+    "/templates/template-09.webp",
+    "/templates/template-10.webp",
+    "/templates/template-11.webp",
+    "/templates/template-12.webp",
     ];
 
     useEffect(() => {

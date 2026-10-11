@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 // third party imports
 import Switch from "./Switch";
+import { API_BASE } from "@utils/api";
 import { useAppSelector } from "@redux/hooks";
 import { addUserData, removeUserData } from "@redux/auth/features";
 
@@ -52,7 +53,7 @@ const SideBar = ({ setProfile }) => {
             }
         }
 
-        const url = "https://flow-cv-backend.onrender.com";
+        const url = API_BASE;
         const payload = method === "change_email" ? changeEmail : changePassword;
 
         fetch(`${url}/auth/update`, {
@@ -93,7 +94,7 @@ const SideBar = ({ setProfile }) => {
     };
 
     const handleDelete = () => {
-        const url = "https://flow-cv-backend.onrender.com";
+        const url = API_BASE;
 
         fetch(`${url}/auth/delete`, {
             headers: {

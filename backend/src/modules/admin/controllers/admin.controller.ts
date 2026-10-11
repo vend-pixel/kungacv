@@ -67,7 +67,7 @@ export class AdminController {
     const bufA = Buffer.from(a);
     const bufB = Buffer.from(b);
 
-    return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+    return bufA.length === bufB.length && timingSafeEqual(bufA as any, bufB as any);
   }
 
   // MAIN FUNCTIONS

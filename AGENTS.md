@@ -1,12 +1,12 @@
-# Agent Guide for clone_flowcv (KungaCV)
+# Agent Guide for kungacv (KungaCV)
 
-This repository is **KungaCV**, a FlowCV-inspired resume builder built as a multi-package application with a NestJS backend, a Next.js resume-builder client, and a Next.js admin dashboard.
+This repository is **KungaCV**, a modern resume builder built as a multi-package application with a NestJS backend, a Next.js resume-builder client, and a Next.js admin dashboard.
 
 - `/backend` — NestJS API (MongoDB, Mongoose, Passport/JWT, Swagger). Package name: `kungacv-backend`.
-- `/frontend/flowcv_client` — Resume builder (Next.js 13 App Router, Redux Toolkit + redux-persist, Tailwind CSS, react-beautiful-dnd). Package name: `kungacv_client`.
-- `/frontend/flowcv_admin` — Admin dashboard (Next.js 13 Pages Router, React Admin, MUI, Chart.js). Package name: `kungacv_admin`.
+- `/frontend/kungacv_client` — Resume builder (Next.js 13 App Router, Redux Toolkit + redux-persist, Tailwind CSS, react-beautiful-dnd). Package name: `kungacv_client`.
+- `/frontend/kungacv_admin` — Admin dashboard (Next.js 13 Pages Router, React Admin, MUI, Chart.js). Package name: `kungacv_admin`.
 
-Folder names (`flowcv_client`, `flowcv_admin`) are intentionally unchanged; only package names, UI copy, and metadata were rebranded.
+The client and admin folders use the product name directly; package names, UI copy, metadata, and asset paths are all KungaCV-owned.
 
 ---
 
@@ -14,18 +14,20 @@ Folder names (`flowcv_client`, `flowcv_admin`) are intentionally unchanged; only
 
 Design direction: **"Ink chrome + electric blue"** — light workspace, near-black nav/hero/footer panels, electric blue as the sole accent, white resume/ATS preview.
 
-- **Tailwind tokens** (`frontend/flowcv_client/tailwind.config.js`): `brand` scale (50–900, core `#1080F0`/`#0070F0`), `ink` scale (50–950, core `#0A0A0B`/`#111114`). The default `blue` scale is overridden by `brand` (so existing `blue-*` utilities use brand colors); `indigo` maps 600/700 to brand.
-- **Logo component**: `frontend/flowcv_client/components/Logo.jsx` — props `variant` (`light`|`dark`), `size` (`sm`|`md`|`lg`), `markOnly`. SVG mark = blue-gradient K over/behind a doc glyph; wordmark is "Kunga" + blue "CV".
-- **CSS vars** (`frontend/flowcv_client/styles/globals.css`): `--dark-color: #0a0a0b`, `--link-color: #0050e0`, `--gradient-from: #1080f0`, `--gradient-to: #0040d0`.
+- **Tailwind tokens** (`frontend/kungacv_client/tailwind.config.js`): `brand` scale (50–900, core `#1080F0`/`#0070F0`), `ink` scale (50–950, core `#0A0A0B`/`#111114`). The default `blue` scale is overridden by `brand` (so existing `blue-*` utilities use brand colors); `indigo` maps 600/700 to brand.
+- **Logo component**: `frontend/kungacv_client/components/Logo.jsx` — props `variant` (`light`|`dark`), `size` (`sm`|`md`|`lg`), `markOnly`. SVG mark = blue-gradient K over/behind a doc glyph; wordmark is "Kunga" + blue "CV".
+- **CSS vars** (`frontend/kungacv_client/styles/globals.css`): `--dark-color: #0a0a0b`, `--link-color: #0050e0`, `--gradient-from: #1080f0`, `--gradient-to: #0040d0`.
 - **Buttons**: solid `bg-brand-600 hover:bg-brand-700` (no gradient buttons, no glassmorphism).
-- **Kept as-is**: template thumbnails from `prod.flowcvassets.com` (whitelisted in `next.config.js`), serif resume fonts, Poppins, hardcoded backend URL `https://flow-cv-backend.onrender.com` in login/signup, `MONGO_DB_NAME=flowcv`, semantic reds for destructive actions (logout/delete).
+- **Template assets**: local `frontend/kungacv_client/public/templates/*.webp` files rendered from the hidden Redux preview route; no remote image domain is whitelisted.
+- **API configuration**: login, signup, and profile actions use `NEXT_PUBLIC_API_URL`, falling back to `https://kungacv-backend.onrender.com`; `MONGO_DB_NAME=kungacv`.
+- **Semantic colors**: reds remain reserved for destructive actions (logout/delete).
 
 ---
 
 ## Repository Layout
 
 ```
-clone_flowcv/
+kungacv/
 ├── backend/                 # NestJS application
 │   ├── config/app.config.ts # env → config mapping
 │   ├── src/
@@ -36,13 +38,13 @@ clone_flowcv/
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
-│   ├── flowcv_client/      # public-facing resume builder
+│   ├── kungacv_client/      # public-facing resume builder
 │   │   ├── app/             # Next.js 13 App Router routes
 │   │   ├── components/
 │   │   ├── redux/           # store, slices, helpers
 │   │   ├── utils/           # helpers, constants
 │   │   └── styles/
-│   └── flowcv_admin/        # admin dashboard
+│   └── kungacv_admin/        # admin dashboard
 │       ├── pages/           # Next.js 13 Pages Router
 │       ├── src/
 │       └── components/
@@ -71,10 +73,10 @@ npm run lint          # ESLint with auto-fix
 - Server starts on **port 3000** by default.
 - Requires Node.js **>= 19**.
 
-### Resume Client (`frontend/flowcv_client/`)
+### Resume Client (`frontend/kungacv_client/`)
 
 ```bash
-cd frontend/flowcv_client
+cd frontend/kungacv_client
 npm install
 npm run dev           # Next.js dev server on port 3001
 npm run build         # production build
@@ -82,10 +84,10 @@ npm run start         # production server
 npm run lint          # next lint
 ```
 
-### Admin Client (`frontend/flowcv_admin/`)
+### Admin Client (`frontend/kungacv_admin/`)
 
 ```bash
-cd frontend/flowcv_admin
+cd frontend/kungacv_admin
 npm install
 npm run dev           # Next.js dev server (default port 3000)
 npm run build
@@ -104,7 +106,7 @@ NODE_ENV=development
 SERVER_HOST=localhost
 SERVER_PORT=3000
 MONGO_URI=mongodb://...
-MONGO_DB_NAME=flowcv
+MONGO_DB_NAME=kungacv
 MONGO_AUTH_SOURCE=admin
 MONGO_USERNAME=
 MONGO_PASSWORD=
@@ -117,9 +119,9 @@ PAYCHANGU_PRO_PASS_DAYS=30
 
 PayChangu keys are required only for the Pro checkout flow; the app boots without them (checkout endpoint returns a clear error). `PAYCHANGU_PRO_PRICE_MWK` is a placeholder (5,000 MWK one-time 30-day Pro pass) pending launch pricing.
 
-The login/signup pages hardcode the backend URL `https://flow-cv-backend.onrender.com` (kept as-is intentionally). All newer client code (payments, resume persistence) uses `utils/api.js`, which reads `NEXT_PUBLIC_API_URL` with that same URL as fallback.
+The login/signup pages hardcode the backend URL `https://kungacv-backend.onrender.com` (kept as-is intentionally). All newer client code (payments, resume persistence) uses `utils/api.js`, which reads `NEXT_PUBLIC_API_URL` with that same URL as fallback.
 
-Client env vars (`frontend/flowcv_client/.env.local`, see `.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container id — GTM snippet and all dataLayer events are disabled when unset), `NEXT_PUBLIC_PRO_PRICE_MWK`, `NEXT_PUBLIC_PRO_PASS_DAYS`.
+Client env vars (`frontend/kungacv_client/.env.local`, see `.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container id — GTM snippet and all dataLayer events are disabled when unset), `NEXT_PUBLIC_PRO_PRICE_MWK`, `NEXT_PUBLIC_PRO_PASS_DAYS`.
 
 ---
 
@@ -172,7 +174,7 @@ Client env vars (`frontend/flowcv_client/.env.local`, see `.env.example`): `NEXT
 
 ---
 
-## Client Architecture (`flowcv_client`)
+## Client Architecture (`kungacv_client`)
 
 ### Routing
 
@@ -211,7 +213,7 @@ Resume state lives in `redux/resume/features.js` and `redux/resume/helper.js`.
 
 ### Path Aliases
 
-Defined in `frontend/flowcv_client/jsconfig.json`:
+Defined in `frontend/kungacv_client/jsconfig.json`:
 
 ```json
 {
@@ -236,7 +238,7 @@ Import style is mixed — some use the alias, some use relative imports. Prefer 
 
 - **Tailwind CSS** with a custom theme.
 - Global styles in `styles/globals.css` (imports many Google Fonts, CSS variables, utility classes).
-- `next.config.js` whitelists `prod.flowcvassets.com` for `next/image`.
+- `next.config.js` whitelists `local public/templates/*.webp assets` for `next/image`.
 - ESLint is configured to `ignoreDuringBuilds: true` in `next.config.js`.
 
 ### Component Organization
@@ -268,7 +270,7 @@ Import style is mixed — some use the alias, some use relative imports. Prefer 
 
 ---
 
-## Admin Architecture (`flowcv_admin`)
+## Admin Architecture (`kungacv_admin`)
 
 - Uses **Pages Router** (`pages/` directory).
 - `pages/index.tsx` dynamically imports `src/App.tsx` with `ssr: false` because React Admin requires the browser.
@@ -321,12 +323,12 @@ npm run test
 
 ### Client
 
-- ESLint: `frontend/flowcv_client/.eslintrc.json` extends `next/core-web-vitals`.
-- Prettier: `frontend/flowcv_client/.prettierrc.json` — `tabWidth: 4`, `singleQuote: false`, `printWidth: 150`, `trailingComma: "es5"`.
+- ESLint: `frontend/kungacv_client/.eslintrc.json` extends `next/core-web-vitals`.
+- Prettier: `frontend/kungacv_client/.prettierrc.json` — `tabWidth: 4`, `singleQuote: false`, `printWidth: 150`, `trailingComma: "es5"`.
 
 ### Admin
 
-- ESLint: `frontend/flowcv_admin/.eslintrc.json` extends `next/core-web-vitals`.
+- ESLint: `frontend/kungacv_admin/.eslintrc.json` extends `next/core-web-vitals`.
 - TypeScript strict mode is enabled in `tsconfig.json`.
 
 ---
@@ -334,8 +336,8 @@ npm run test
 ## Important Gotchas
 
 1. **No root workspace or monorepo tooling.** Install dependencies and run scripts inside each package directory.
-2. **Port collisions.** The backend defaults to 3000; `flowcv_client` dev server runs on 3001; `flowcv_admin` dev server runs on 3000. Do not run backend and admin dev servers at the same time without changing one port.
-3. **Hardcoded API URL.** Login/signup forms call `https://flow-cv-backend.onrender.com`. Local backend testing requires editing those files.
+2. **Port collisions.** The backend defaults to 3000; `kungacv_client` dev server runs on 3001; `kungacv_admin` dev server runs on 3000. Do not run backend and admin dev servers at the same time without changing one port.
+3. **Hardcoded API URL.** Login/signup forms call `https://kungacv-backend.onrender.com`. Local backend testing requires editing those files.
 4. **JWT secret mismatch.** `backend/src/modules/auth/strategies/jwt.strategy.ts` has a hardcoded secret. The app mostly uses the custom `AuthGuard` (which reads from env), but if Passport strategy validation is used, secrets must match.
 5. **ESLint disabled during client builds.** `next.config.js` has `eslint: { ignoreDuringBuilds: true }`.
 6. **Mongoose deprecation warnings.** The code sets `useNewUrlParser` and `useUnifiedTopology`; these may produce deprecation warnings on newer Mongoose versions.
@@ -351,8 +353,8 @@ npm run test
 - Backend entry: `backend/src/main.ts`
 - Backend auth guard: `backend/src/shared/guards/auth.guard.ts`
 - Backend config: `backend/config/app.config.ts`
-- Client layout/root: `frontend/flowcv_client/app/layout.jsx`
-- Client redux store: `frontend/flowcv_client/redux/store.js`
-- Resume editor page: `frontend/flowcv_client/app/resume/create/page.jsx`
-- Resume constants: `frontend/flowcv_client/utils/Constants.js`
-- Admin entry: `frontend/flowcv_admin/src/App.tsx`
+- Client layout/root: `frontend/kungacv_client/app/layout.jsx`
+- Client redux store: `frontend/kungacv_client/redux/store.js`
+- Resume editor page: `frontend/kungacv_client/app/resume/create/page.jsx`
+- Resume constants: `frontend/kungacv_client/utils/Constants.js`
+- Admin entry: `frontend/kungacv_admin/src/App.tsx`
