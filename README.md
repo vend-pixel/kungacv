@@ -13,6 +13,7 @@ See `AGENTS.md` for commands, architecture, and conventions.
 - [System architecture](docs/ARCHITECTURE.md)
 - [Development and release workflow](docs/DEVELOPMENT.md)
 - [Render deployment runbook](docs/DEPLOYMENT.md)
+- [Security baseline](SECURITY.md)
 - [Render Blueprint](render.yaml)
 
 The production branch is `main`; `develop` is the staging branch. Feature and fix branches merge into `develop` through pull requests with automated backend, client, admin, dependency, and build checks.

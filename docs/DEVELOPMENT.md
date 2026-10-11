@@ -14,9 +14,9 @@ Every pull request into `develop` or `main` runs the GitHub Actions workflow in 
 1. Backend lint without auto-fixing, TypeScript type checking, unit tests with coverage, and production build.
 2. Client lint and production build.
 3. Admin lint and production build.
-4. Dependency review for high-severity dependency changes.
+4. An advisory dependency audit that remains visible while the documented legacy upgrades are completed.
 
-The security audit is intentionally visible as a separate job while the existing dependency baseline is remediated. New high-severity dependency changes are blocked by dependency review.
+The security audit is intentionally visible as a separate advisory job while the existing dependency baseline is remediated. See [`SECURITY.md`](../SECURITY.md) for the upgrade plan; do not use `npm audit fix --force` across framework majors.
 
 ## Standard change flow
 

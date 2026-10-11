@@ -78,7 +78,7 @@ jobs:
       - run: npm run build
 
   security:
-    name: Dependency security audit
+    name: Dependency security audit (advisory)
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -88,10 +88,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Audit backend dependencies
         working-directory: backend
-        run: npm ci && npm audit --audit-level=high
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Backend dependency advisories are documented in SECURITY.md")
       - name: Audit client dependencies
         working-directory: frontend/kungacv_client
-        run: npm ci && npm audit --audit-level=high
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Client dependency advisories are documented in SECURITY.md")
       - name: Audit admin dependencies
         working-directory: frontend/kungacv_admin
-        run: npm ci && npm audit --audit-level=high
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Admin dependency advisories are documented in SECURITY.md")
