@@ -54,7 +54,8 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  const port = config.get<string>('server.port') || 3000;
-  await app.listen(Number(port));
+  const port = config.get<string>('server.port') || process.env.PORT || 3000;
+  const host = config.get<string>('server.host') || '0.0.0.0';
+  await app.listen(Number(port), host);
 }
 bootstrap();

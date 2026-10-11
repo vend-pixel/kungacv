@@ -1,0 +1,129 @@
+# Render Blueprint for KungaCV.
+# Production tracks main; staging tracks develop. Secret values are intentionally
+# declared as sync:false and must be entered in Render, never committed here.
+services:
+  - type: web
+    name: kungacv-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: cd backend && npm ci && npm run build
+    startCommand: cd backend && npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: MONGO_DB_NAME
+        value: kungacv
+      - key: CLIENT_URL
+        value: https://kungacv-client.onrender.com
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_AUTH_SOURCE
+        sync: false
+      - key: MONGO_USERNAME
+        sync: false
+      - key: MONGO_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PAYCHANGU_SECRET_KEY
+        sync: false
+      - key: PAYCHANGU_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_SIGNUP_TOKEN
+        sync: false
+
+  - type: web
+    name: kungacv-client
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: cd frontend/kungacv_client && npm ci && npm run build
+    startCommand: cd frontend/kungacv_client && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://kungacv-api.onrender.com
+      - key: NEXT_PUBLIC_GTM_ID
+        sync: false
+      - key: NEXT_PUBLIC_PRO_PRICE_MWK
+        value: "5000"
+      - key: NEXT_PUBLIC_PRO_PASS_DAYS
+        value: "30"
+
+  - type: web
+    name: kungacv-admin
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: cd frontend/kungacv_admin && npm ci && npm run build
+    startCommand: cd frontend/kungacv_admin && npm start
+
+  - type: web
+    name: kungacv-api-staging
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: develop
+    autoDeploy: true
+    buildCommand: cd backend && npm ci && npm run build
+    startCommand: cd backend && npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: MONGO_DB_NAME
+        value: kungacv_staging
+      - key: CLIENT_URL
+        value: https://kungacv-client-staging.onrender.com
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_AUTH_SOURCE
+        sync: false
+      - key: MONGO_USERNAME
+        sync: false
+      - key: MONGO_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PAYCHANGU_SECRET_KEY
+        sync: false
+      - key: PAYCHANGU_WEBHOOK_SECRET
+        sync: false
+
+  - type: web
+    name: kungacv-client-staging
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: develop
+    autoDeploy: true
+    buildCommand: cd frontend/kungacv_client && npm ci && npm run build
+    startCommand: cd frontend/kungacv_client && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://kungacv-api-staging.onrender.com
+      - key: NEXT_PUBLIC_PRO_PRICE_MWK
+        value: "5000"
+      - key: NEXT_PUBLIC_PRO_PASS_DAYS
+        value: "30"
+
+  - type: web
+    name: kungacv-admin-staging
+    runtime: node
+    region: frankfurt
+    plan: free
+    branch: develop
+    autoDeploy: true
+    buildCommand: cd frontend/kungacv_admin && npm ci && npm run build
+    startCommand: cd frontend/kungacv_admin && npm start

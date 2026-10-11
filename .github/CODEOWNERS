@@ -1,0 +1,5 @@
+* @vend-pixel
+backend/ @vend-pixel
+frontend/ @vend-pixel
+.github/ @vend-pixel
+render.yaml @vend-pixel
