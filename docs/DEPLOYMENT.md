@@ -6,9 +6,9 @@ The repository defines six Render web services in [`render.yaml`](../render.yaml
 
 | Service | Runtime | Build | Start | Health check |
 |---|---|---|---|---|
-| API | Node/NestJS | `cd backend && npm ci && npm run build` | `cd backend && npm run start:prod` | `/health` |
-| Client | Node/Next.js | `cd frontend/kungacv_client && npm ci && npm run build` | `cd frontend/kungacv_client && npm start` | Render default |
-| Admin | Node/Next.js | `cd frontend/kungacv_admin && npm ci && npm run build` | `cd frontend/kungacv_admin && npm start` | Render default |
+| API | Node/NestJS | `cd backend && npm ci --include=dev && npm run build` | `cd backend && npm run start:prod` | `/health` |
+| Client | Node/Next.js | `cd frontend/kungacv_client && npm ci --include=dev && npm run build` | `cd frontend/kungacv_client && npm start` | Render default |
+| Admin | Node/Next.js | `cd frontend/kungacv_admin && npm ci --include=dev && npm run build` | `cd frontend/kungacv_admin && npm start` | Render default |
 
 The services use Frankfurt to reduce latency for Malawi and regional users. Free plans are suitable for early staging and low-volume validation, but they can suspend when idle; upgrade the API and client when uptime and cold-start behavior become product requirements.
 
@@ -18,7 +18,8 @@ The services use Frankfurt to reduce latency for Malawi and regional users. Free
 2. Create the Blueprint from `render.yaml`, or create the six services with the same names and commands.
 3. Enter staging secrets into the `*-staging` API service and production secrets into `kungacv-api`.
 4. Set `NEXT_PUBLIC_API_URL` on each client service to the matching API URL. Because this is a public Next.js build variable, changing it requires a new client build.
-5. Confirm the API `/health` endpoint returns HTTP 200 before testing authentication or payments.
+5. Set the API service health-check path to `/health` in Render when creating services manually; the Blueprint declares this automatically.
+6. Confirm the API `/health` endpoint returns HTTP 200 before testing authentication or payments.
 
 ## Required API environment variables
 
