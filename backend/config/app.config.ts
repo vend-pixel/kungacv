@@ -1,7 +1,7 @@
 export default () => ({
   server: {
-    host: process.env.SERVER_HOST,
-    port: process.env.SERVER_PORT,
+    host: process.env.SERVER_HOST || '0.0.0.0',
+    port: process.env.PORT || process.env.SERVER_PORT || 3000,
   },
   mongo_db: {
     url: process.env.MONGO_URI,

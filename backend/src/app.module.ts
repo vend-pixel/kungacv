@@ -12,8 +12,10 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { PurchaseModule } from './modules/purchase/purchase.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ResumeModule } from './modules/resume/resume.module';
+import { HealthController } from './health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ load: [appConfig], isGlobal: true }),
     MongooseModule.forRootAsync({
