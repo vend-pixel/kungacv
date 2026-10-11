@@ -186,7 +186,9 @@ export class PaymentService {
   ): boolean {
     if (!rawBody || !signature) return false;
 
-    const expected = createHmac('sha256', secret).update(rawBody as any).digest('hex');
+    const expected = createHmac('sha256', secret)
+      .update(rawBody as any)
+      .digest('hex');
 
     try {
       return timingSafeEqual(

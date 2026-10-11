@@ -68,9 +68,11 @@ npm run start:prod    # run dist/main.js
 npm run start         # non-watch dev start
 npm run test          # Jest unit tests
 npm run lint          # ESLint with auto-fix
+npm run lint:check    # CI-safe ESLint check
+npm run typecheck     # TypeScript check without emitting files
 ```
 
-- Server starts on **port 3000** by default.
+- Server starts on **port 3000** by default and honors Render's injected `PORT` in deployment.
 - Requires Node.js **>= 19**.
 
 ### Resume Client (`frontend/kungacv_client/`)
@@ -103,8 +105,9 @@ Backend (`backend/.env` — not committed, must be created):
 
 ```bash
 NODE_ENV=development
-SERVER_HOST=localhost
+SERVER_HOST=0.0.0.0
 SERVER_PORT=3000
+PORT=3000
 MONGO_URI=mongodb://...
 MONGO_DB_NAME=kungacv
 MONGO_AUTH_SOURCE=admin
@@ -119,7 +122,7 @@ PAYCHANGU_PRO_PASS_DAYS=30
 
 PayChangu keys are required only for the Pro checkout flow; the app boots without them (checkout endpoint returns a clear error). `PAYCHANGU_PRO_PRICE_MWK` is a placeholder (5,000 MWK one-time 30-day Pro pass) pending launch pricing.
 
-The login/signup pages hardcode the backend URL `https://kungacv-backend.onrender.com` (kept as-is intentionally). All newer client code (payments, resume persistence) uses `utils/api.js`, which reads `NEXT_PUBLIC_API_URL` with that same URL as fallback.
+Login, signup, payments, and resume persistence use `utils/api.js`, which reads `NEXT_PUBLIC_API_URL` and falls back to the hosted API URL.
 
 Client env vars (`frontend/kungacv_client/.env.local`, see `.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container id — GTM snippet and all dataLayer events are disabled when unset), `NEXT_PUBLIC_PRO_PRICE_MWK`, `NEXT_PUBLIC_PRO_PASS_DAYS`.
 
@@ -132,7 +135,13 @@ Client env vars (`frontend/kungacv_client/.env.local`, see `.env.example`): `NEX
 - `backend/src/main.ts` bootstraps the NestJS app:
   - Enables CORS globally (`cors: true`).
   - Applies `ValidationPipe` with `whitelist: true`.
-  - Listens on port 3000.
+  - Listens on `PORT` when provided by Render, otherwise port 3000.
+
+### Operations
+
+- [System architecture](docs/ARCHITECTURE.md)
+- [Development and release workflow](docs/DEVELOPMENT.md)
+- [Render deployment runbook](docs/DEPLOYMENT.md)
 
 ### Modules
 

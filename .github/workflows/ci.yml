@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  backend:
+    name: Backend quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm run typecheck
+      - run: npm test -- --runInBand --coverage
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage
+          if-no-files-found: ignore
+
+  client:
+    name: Client quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/kungacv_client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/kungacv_client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  admin:
+    name: Admin quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/kungacv_admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/kungacv_admin/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  security:
+    name: Dependency security audit (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Audit backend dependencies
+        working-directory: backend
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Backend dependency advisories are documented in SECURITY.md")
+      - name: Audit client dependencies
+        working-directory: frontend/kungacv_client
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Client dependency advisories are documented in SECURITY.md")
+      - name: Audit admin dependencies
+        working-directory: frontend/kungacv_admin
+        run: npm ci && (npm audit --audit-level=high || echo "::warning::Admin dependency advisories are documented in SECURITY.md")
