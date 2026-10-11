@@ -1,0 +1,41 @@
+// THIRD PARTY IMPORTS
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+// INNER IMPORTS
+import appConfig from 'config/app.config';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { PurchaseModule } from './modules/purchase/purchase.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { ResumeModule } from './modules/resume/resume.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ load: [appConfig], isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule], // Import the ConfigModule
+      useFactory: async (configService: ConfigService) => {
+        return {
+          uri: `${configService.get('mongo_db.url')}/${configService.get(
+            'mongo_db.db_name',
+          )}`,
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        };
+      },
+      inject: [ConfigService],
+    }),
+    UserModule,
+    AuthModule,
+    AdminModule,
+    SubscriptionModule,
+    PurchaseModule,
+    PaymentModule,
+    ResumeModule,
+  ],
+})
+export class AppModule {}
