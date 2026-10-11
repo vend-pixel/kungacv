@@ -9,7 +9,7 @@ services:
     plan: free
     branch: main
     autoDeploy: true
-    buildCommand: cd backend && npm ci && npm run build
+    buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm run start:prod
     healthCheckPath: /health
     envVars:
@@ -45,7 +45,7 @@ services:
     plan: free
     branch: main
     autoDeploy: true
-    buildCommand: cd frontend/kungacv_client && npm ci && npm run build
+    buildCommand: cd frontend/kungacv_client && npm ci --include=dev && npm run build
     startCommand: cd frontend/kungacv_client && npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
@@ -64,7 +64,7 @@ services:
     plan: free
     branch: main
     autoDeploy: true
-    buildCommand: cd frontend/kungacv_admin && npm ci && npm run build
+    buildCommand: cd frontend/kungacv_admin && npm ci --include=dev && npm run build
     startCommand: cd frontend/kungacv_admin && npm start
 
   - type: web
@@ -74,7 +74,7 @@ services:
     plan: free
     branch: develop
     autoDeploy: true
-    buildCommand: cd backend && npm ci && npm run build
+    buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm run start:prod
     healthCheckPath: /health
     envVars:
@@ -108,7 +108,7 @@ services:
     plan: free
     branch: develop
     autoDeploy: true
-    buildCommand: cd frontend/kungacv_client && npm ci && npm run build
+    buildCommand: cd frontend/kungacv_client && npm ci --include=dev && npm run build
     startCommand: cd frontend/kungacv_client && npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
@@ -125,5 +125,5 @@ services:
     plan: free
     branch: develop
     autoDeploy: true
-    buildCommand: cd frontend/kungacv_admin && npm ci && npm run build
+    buildCommand: cd frontend/kungacv_admin && npm ci --include=dev && npm run build
     startCommand: cd frontend/kungacv_admin && npm start
