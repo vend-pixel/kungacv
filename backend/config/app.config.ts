@@ -1,8 +1,22 @@
 export const PLACEHOLDER_JWT_SECRET = 'your_secret_key_change_me';
 
+export function buildMongoUri(baseUri: string, databaseName: string): string {
+  const uri = new URL(baseUri);
+  if (!uri.pathname || uri.pathname === '/') {
+    uri.pathname = `/${encodeURIComponent(databaseName)}`;
+  }
+  return uri.toString();
+}
+
 export function validateEnvironment(env: Record<string, unknown>) {
-  const required = ['MONGO_URI', 'MONGO_DB_NAME', 'JWT_SECRET'];
-  const missing = required.filter((key) => !String(env[key] || '').trim());
+  const required = [
+    ['MONGO_URI', env.MONGO_URI || env.MONGODB_URI],
+    ['MONGO_DB_NAME', env.MONGO_DB_NAME],
+    ['JWT_SECRET', env.JWT_SECRET],
+  ] as const;
+  const missing = required
+    .filter(([, value]) => !String(value || '').trim())
+    .map(([key]) => key);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
@@ -26,11 +40,11 @@ export default () => ({
     port: process.env.PORT || process.env.SERVER_PORT || 3000,
   },
   mongo_db: {
-    url: process.env.MONGO_URI,
+    url: process.env.MONGO_URI || process.env.MONGODB_URI,
     db_name: process.env.MONGO_DB_NAME,
     auth_source: process.env.MONGO_AUTH_SOURCE,
-    user: process.env.MONGO_USERNAME || '',
-    password: process.env.MONGO_PASSWORD || '',
+    user: process.env.MONGO_USERNAME || process.env.MONGODB_USERNAME || '',
+    password: process.env.MONGO_PASSWORD || process.env.MONGODB_PASSWORD || '',
   },
   jsonwebtoken: {
     jwt_secret: process.env.JWT_SECRET,
