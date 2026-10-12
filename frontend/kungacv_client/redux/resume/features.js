@@ -621,6 +621,26 @@ export const resume = createSlice({
         setResumeTitle: (state, action) => {
             state.title = action.payload || null;
         },
+        applyTemplatePreset: (state, action) => {
+            const preset = action.payload || {};
+            const templateFields = [
+                "personalInfo",
+                "professionalExperience",
+                "skills",
+                "languages",
+                "projects",
+                "certificates",
+                "interests",
+                "education",
+                "courses",
+                "references",
+                "customization",
+            ];
+            Object.assign(state, _.cloneDeep(_.pick(preset, templateFields)));
+            state.activeResumeUid = null;
+            state.title = null;
+            state.saveStatus = "local";
+        },
         hydrateResume: (state, action) => {
             const { resume_uid, title, content } = action.payload || {};
             Object.assign(state, initialState);
@@ -682,6 +702,7 @@ export const {
     setActiveResumeUid,
     setSaveStatus,
     setResumeTitle,
+    applyTemplatePreset,
     hydrateResume,
 } = resume.actions;
 export default resume.reducer;

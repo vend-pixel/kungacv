@@ -9,7 +9,7 @@ import { updateCustomization } from "@redux/resume/features";
 const ColorsElement = ({ style, title, selectedColors, setSelectedColors }) => {
     return (
         <>
-            <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setSelectedColors(title)}>
+            <button type="button" aria-pressed={selectedColors === title} aria-label={`${title} color style`} className="text-center cursor-pointer hover:opacity-80" onClick={() => setSelectedColors(title)}>
                 <div
                     style={{
                         borderRadius: "100%",
@@ -23,14 +23,17 @@ const ColorsElement = ({ style, title, selectedColors, setSelectedColors }) => {
                     {!style.border && <div style={style}></div>}
                 </div>
                 <p className="capitalize text-sm my-2">{title}</p>
-            </div>
+            </button>
         </>
     );
 };
 
 const ColorPicker = ({ c, i, setSelectedColor, selectedColor }) => {
     return (
-        <div
+        <button
+            type="button"
+            aria-pressed={c === selectedColor.accent}
+            aria-label={`Accent color ${c}`}
             key={c}
             className={`w-10 h-10 rounded-full grid place-content-center text-white`}
             style={{
@@ -62,13 +65,16 @@ const ColorPicker = ({ c, i, setSelectedColor, selectedColor }) => {
                     />
                 </>
             )}
-        </div>
+        </button>
     );
 };
 
 const MultiColorComponent = ({ c, selectedColor, setSelectedColor }) => {
     return (
-        <div
+        <button
+            type="button"
+            aria-pressed={c === selectedColor.multicolor}
+            aria-label={`Multicolor palette ${c}`}
             className="flex cursor-pointer"
             key={c}
             onClick={() => {
@@ -88,7 +94,7 @@ const MultiColorComponent = ({ c, selectedColor, setSelectedColor }) => {
                 {" "}
                 {c === selectedColor.multicolor && <FiCheck className="text-[1.4rem]" />}
             </div>
-        </div>
+        </button>
     );
 };
 
@@ -100,7 +106,7 @@ const ColorsComponent = ({ selectedType, setSelectedType, selectedColor, setSele
     return (
         <>
             <div className="flex text-center gap-[2rem] mt-5">
-                <div className="cursor-pointer hover:opacity-80" onClick={() => setSelectedType("accent")}>
+                <button type="button" aria-pressed={selectedType === "accent"} aria-label="Use accent colors" className="cursor-pointer hover:opacity-80" onClick={() => setSelectedType("accent")}>
                     <div
                         style={{ background: selectedColor.accent }}
                         className={`w-[6rem] h-[3rem] grid rounded-[.8rem] place-content-center text-white`}
@@ -108,8 +114,8 @@ const ColorsComponent = ({ selectedType, setSelectedType, selectedColor, setSele
                         {selectedType === "accent" && <FiCheck className="text-[1.4rem]" />}
                     </div>
                     <p className="text-sm my-2">Accent</p>
-                </div>
-                <div className="cursor-pointer hover:opacity-80" onClick={() => setSelectedType("multicolor")}>
+                </button>
+                <button type="button" aria-pressed={selectedType === "multicolor"} aria-label="Use multicolor palettes" className="cursor-pointer hover:opacity-80" onClick={() => setSelectedType("multicolor")}>
                     <div className="flex">
                         <div className="w-14 h-12 bg-white border border-[#cbcbcb] border-r-0 rounded-l-xl grid place-content-center">
                             <p
@@ -127,7 +133,7 @@ const ColorsComponent = ({ selectedType, setSelectedType, selectedColor, setSele
                         </div>
                     </div>
                     <p className="text-sm my-2">Multicolor</p>
-                </div>
+                </button>
             </div>
             {selectedType === "accent" && (
                 <div className="flex gap-4 flex-wrap justify-center my-3 w-[19rem] sm:w-[30rem]">
@@ -149,12 +155,13 @@ const ColorsComponent = ({ selectedType, setSelectedType, selectedColor, setSele
                     {COLOR_CHECK_BOXES.map((c) => (
                         <div key={c} className="flex items-center text-sm">
                             <input
+                                id={`apply-accent-${c.replace(/\s+/g, "-").toLowerCase()}`}
                                 checked={applyAccentColor[c] || false}
                                 type="checkbox"
                                 className="h-6 w-6 rounded border-gray-200 border-1 text-indigo-600 focus:ring-indigo-600 mr-2"
                                 onChange={(e) => handleApplyColorWrapper(e, c)}
                             />
-                            <label>{c}</label>
+                            <label htmlFor={`apply-accent-${c.replace(/\s+/g, "-").toLowerCase()}`}>{c}</label>
                         </div>
                     ))}
                 </div>
