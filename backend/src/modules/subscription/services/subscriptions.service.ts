@@ -41,8 +41,6 @@ export class SubscriptionService {
       },
     ];
 
-    console.log('QUERY', JSON.stringify(baseQuery));
-
     const subscriptions = this.subscriptionModel.aggregate(baseQuery);
 
     return subscriptions;
