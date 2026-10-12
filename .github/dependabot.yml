@@ -4,18 +4,22 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
+    rebase-strategy: auto
     open-pull-requests-limit: 5
   - package-ecosystem: npm
     directory: /frontend/kungacv_client
     schedule:
       interval: weekly
+    rebase-strategy: auto
     open-pull-requests-limit: 5
   - package-ecosystem: npm
     directory: /frontend/kungacv_admin
     schedule:
       interval: weekly
+    rebase-strategy: auto
     open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    rebase-strategy: auto

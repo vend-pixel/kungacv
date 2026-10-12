@@ -80,7 +80,6 @@ jobs:
   security:
     name: Dependency security audit (advisory)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -88,10 +87,16 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Audit backend dependencies
         working-directory: backend
-        run: npm ci && (npm audit --audit-level=high || echo "::warning::Backend dependency advisories are documented in SECURITY.md")
+        run: |
+          npm ci --include=dev || { echo "::warning::Backend dependency installation could not be resolved; see the strict Backend quality job."; exit 0; }
+          npm audit --audit-level=high || echo "::warning::Backend dependency advisories are documented in SECURITY.md"
       - name: Audit client dependencies
         working-directory: frontend/kungacv_client
-        run: npm ci && (npm audit --audit-level=high || echo "::warning::Client dependency advisories are documented in SECURITY.md")
+        run: |
+          npm ci --include=dev || { echo "::warning::Client dependency installation could not be resolved; see the strict Client quality job."; exit 0; }
+          npm audit --audit-level=high || echo "::warning::Client dependency advisories are documented in SECURITY.md"
       - name: Audit admin dependencies
         working-directory: frontend/kungacv_admin
-        run: npm ci && (npm audit --audit-level=high || echo "::warning::Admin dependency advisories are documented in SECURITY.md")
+        run: |
+          npm ci --include=dev || { echo "::warning::Admin dependency installation could not be resolved; see the strict Admin quality job."; exit 0; }
+          npm audit --audit-level=high || echo "::warning::Admin dependency advisories are documented in SECURITY.md"
