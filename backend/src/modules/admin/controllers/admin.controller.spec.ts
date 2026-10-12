@@ -21,7 +21,7 @@ describe('AdminController', () => {
       get: jest.fn((key: string) =>
         key === 'admin_signup_token' ? token : undefined,
       ),
-    } as any);
+    }) as any;
 
   const build = (token?: string) =>
     new AdminController(

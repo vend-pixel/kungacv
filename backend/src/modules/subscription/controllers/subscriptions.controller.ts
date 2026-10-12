@@ -51,9 +51,8 @@ export class SubscriptionController {
       parsedQuery.uid = [uid];
     }
 
-    const docs = await this.subscriptionService.getAllSubscriptions(
-      parsedQuery,
-    );
+    const docs =
+      await this.subscriptionService.getAllSubscriptions(parsedQuery);
     const retObj: any = { subscriptions: docs };
 
     if (query.count) {

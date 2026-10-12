@@ -5,19 +5,43 @@ updates:
     schedule:
       interval: weekly
     rebase-strategy: auto
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      backend-patch-and-minor:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /frontend/kungacv_client
     schedule:
       interval: weekly
     rebase-strategy: auto
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      client-patch-and-minor:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /frontend/kungacv_admin
     schedule:
       interval: weekly
     rebase-strategy: auto
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      admin-patch-and-minor:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
