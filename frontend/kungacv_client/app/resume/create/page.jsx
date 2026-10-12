@@ -13,7 +13,7 @@ import { trackEvent } from "@utils/analytics";
 import Skills from "@components/ResumeComponents/Skills";
 import Language from "@components/ResumeComponents/Language";
 import Interest from "@components/ResumeComponents/Interests";
-import { hydrateResume, setEditObj, setActiveResumeUid, setPrevObj, setResumeTitle, setSaveStatus } from "@redux/resume/features";
+import { applyTemplatePreset, hydrateResume, setEditObj, setActiveResumeUid, setPrevObj, setResumeTitle, setSaveStatus } from "@redux/resume/features";
 import AddContent from "@components/ResumeComponents/AddContent";
 import Certificate from "@components/ResumeComponents/Certificate";
 import ProjectComponent from "@components/ResumeComponents/Project";
@@ -26,6 +26,7 @@ import MobileNav from "@components/ResumeComponents/MobileNav";
 import TemplateDemo from "@components/ResumeComponents/TemplateDemo";
 import { AiFillCloseCircle } from "react-icons/ai";
 import Logo from "@components/Logo";
+import templatePresets from "@utils/templatePresets";
 
 const CreateResume = () => {
     const [addContent, setAddContent] = useState(false);
@@ -96,6 +97,9 @@ const CreateResume = () => {
     useEffect(() => {
         const rid = new URLSearchParams(window.location.search).get("rid");
         if (!token || !rid) {
+            const templateId = Number(new URLSearchParams(window.location.search).get("template"));
+            const template = templatePresets.find((preset) => preset.id === templateId);
+            if (!rid && template) dispatch(applyTemplatePreset(template.data));
             dispatch(setActiveResumeUid(null));
             setReady(true);
             return undefined;
@@ -195,17 +199,23 @@ const CreateResume = () => {
 
     return (
         <div className="editor-shell min-h-[90vh] w-[100vw] flex gap-5 relative bg-[#EEF0F4] px-0 sm:px-10">
+            <a className="skip-link" href="#editor-content">
+                Skip to editor content
+            </a>
             {/* mobile menus  */}
             <MobileNav currentComponent={currentComponent} setCurrentComponent={setCurrentComponent} setDemo={setDemo} />
 
             {/* left */}
             <div className="flex grow items-start gap-8 relative">
                 {/* left */}
-                <div className="grow-0 sticky top-8 z-[10000] hidden sm:flex flex-col items-center justify-center gap-10 px-2 py-5 rounded-xl shadow-lg bg-gray-50">
+                <nav className="grow-0 sticky top-8 z-[10000] hidden sm:flex flex-col items-center justify-center gap-10 px-2 py-5 rounded-xl shadow-lg bg-gray-50" aria-label="Editor sections">
                     <Link href={"/"}>
                         <Logo variant="light" size="lg" markOnly />
                     </Link>
-                    <div
+                    <button
+                        type="button"
+                        aria-current={currentComponent === AVAILABLE_COMPONENTS.personalInfo ? "page" : undefined}
+                        aria-label="Edit resume content"
                         className={`flex flex-col px-4 py-3 justify-center items-center cursor-pointer rounded-xl ${
                             currentComponent === AVAILABLE_COMPONENTS.personalInfo ? "text-brand-600 bg-gray-100" : ""
                         }`}
@@ -213,43 +223,48 @@ const CreateResume = () => {
                     >
                         <img
                             src={currentComponent === AVAILABLE_COMPONENTS.personalInfo ? "/content.svg" : "/content1.svg"}
-                            alt="content"
+                            alt=""
                             className="w-10"
                         />
                         <p>Content</p>
-                    </div>
-                    <div
+                    </button>
+                    <button
+                        type="button"
+                        aria-current={currentComponent === "CUSTOMIZE" ? "page" : undefined}
+                        aria-label="Customize resume"
                         className={`flex flex-col px-4 py-3 justify-center items-center cursor-pointer rounded-xl ${
                             currentComponent === "CUSTOMIZE" ? "text-brand-600 bg-gray-100" : ""
                         } `}
                         onClick={() => setCurrentComponent("CUSTOMIZE")}
                     >
-                        <img src={currentComponent === "CUSTOMIZE" ? "/customize1.svg" : "/customize.svg"} alt="customize" className="w-10" />
+                        <img src={currentComponent === "CUSTOMIZE" ? "/customize1.svg" : "/customize.svg"} alt="" className="w-10" />
                         <p>Customize</p>
-                    </div>
-                </div>
+                    </button>
+                </nav>
 
                 {/* right */}
-                <div className="flex grow flex-col justify-center items-stretch gap-4">
+                <main id="editor-content" className="flex grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
                     <div className="sticky top-0 rounded-b-lg pt-0 sm:pt-[2rem] bg-[#EEF0F4] z-[6] mb-6 w-full shadow-sm">
                         <div className="sticky top-8 z-[1000]  grid grid-cols-[min-content_1fr_min-content] items-center bg-white px-6 py-3 md:px-8 md:py-4  lg:px-9 lg:py-5 rounded-xl shadow-none sm:shadow-lg">
                             <Link
                                 href={"/resume"}
+                                aria-label="Back to resumes"
                                 className="sidebar:hidden mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-white hover:cursor-pointer hover:opacity-80"
                             >
-                                <img src="/arrow.svg" className="w-6" />
+                                <img src="/arrow.svg" alt="" className="w-6" />
                             </Link>
                             <div className="min-w-0">
                                 <div className="flex w-full cursor-pointer items-center space-x-2 pr-4 hover:opacity-80">
                                     <p className="text-black truncate text-2xl font-extrabold">{displayTitle}</p>
                                     <button
                                         type="button"
+                                        aria-label="Rename resume"
                                         className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 min-h-[30px] min-w-[30px] text-gray-400"
                                     >
-                                        <img src="/edit.svg" className="w-5" />
+                                        <img src="/edit.svg" alt="" className="w-5" />
                                     </button>
                                 </div>
-                                <p className={`pr-4 text-xs font-medium ${token && saveStatus === "error" ? "text-red-600" : "text-gray-400"}`}>
+                                <p role="status" aria-live="polite" className={`pr-4 text-xs font-medium ${token && saveStatus === "error" ? "text-red-600" : "text-gray-400"}`}>
                                     {statusLabel}
                                 </p>
                             </div>
@@ -267,7 +282,7 @@ const CreateResume = () => {
                                     onClick={handleDownload}
                                     className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 min-h-[30px] min-w-[30px] text-white bg-black h-12 w-12 rounded-full md:hidden"
                                 >
-                                    <img src="/download.svg" className="w-6" />
+                                    <img src="/download.svg" alt="" className="w-6" />
                                 </button>
                                 <button
                                     type="button"
@@ -392,6 +407,8 @@ const CreateResume = () => {
                     {currentComponent === "personalInfo" && (
                         <div className="flex justify-center mb-10">
                             <button
+                                type="button"
+                                aria-label="Add resume content"
                                 className="mt-8  flex gradient border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:scale-105 transition-transform shadow-md rounded-full font-extrabold h-15 text-[17px] min-w-[180px] text-white bg-gradient-to-r from-brand-500 to-brand-700 py-4 px-[4rem]"
                                 onClick={() => setAddContent(true)}
                             >
@@ -400,27 +417,28 @@ const CreateResume = () => {
                             </button>
                         </div>
                     )}
-                </div>
+                </main>
             </div>
 
             {/* Template demo */}
-            <div
+            <aside
                 id="resume-print-root"
+                aria-label="Resume preview"
                 className={`hidden sm:block grow-[4] bg-white min-h-screen h-full my-[2rem] w-1/4 px-[3rem] overflow-hidden break-words sticky top-8${
                     isPro ? "" : " is-watermarked"
                 }`}
                 style={previewStyle}
             >
                 <TemplateDemo resumeData={resumeData} />
-            </div>
+            </aside>
 
             {/* Template Demo for Mobile */}
             {demo && (
-                <div className="fixed sm:hidden top-0 left-0 h-screen w-full text-sm z-[500] px-4 py-[3rem] grid place-content-center bg-[rgba(0,0,0,0.7)]">
+                <div className="fixed sm:hidden top-0 left-0 h-screen w-full text-sm z-[500] px-4 py-[3rem] grid place-content-center bg-[rgba(0,0,0,0.7)]" role="dialog" aria-modal="true" aria-label="Resume preview">
                     <div>
-                        <div className="absolute top-4 right-6 text-5xl text-white" onClick={() => setDemo(false)}>
+                        <button type="button" className="absolute top-4 right-6 text-5xl text-white" aria-label="Close resume preview" onClick={() => setDemo(false)}>
                             <AiFillCloseCircle />
-                        </div>
+                        </button>
                         <div className={`bg-white scale-[0.5] h-auto my-[2rem] w-[40rem] px-[3rem] overflow-hidden break-words`} style={previewStyle}>
                             <TemplateDemo resumeData={resumeData} />
                         </div>

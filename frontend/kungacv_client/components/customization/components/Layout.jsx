@@ -11,7 +11,7 @@ import { ADD_CONTENT, ICONS_OBJ, PERSONAL_INFO_ID } from "@utils/Constants";
 const LayoutButton = ({ title, style, selectedLayout, setSelectedLayout }) => {
     return (
         <>
-            <div className="text-center cursor-pointer hover:opacity-80" onClick={() => setSelectedLayout(title)}>
+            <button type="button" aria-pressed={selectedLayout === title.toLowerCase()} aria-label={`${title} layout`} className="text-center cursor-pointer hover:opacity-80" onClick={() => setSelectedLayout(title)}>
                 <div
                     style={{
                         border: `${selectedLayout === title.toLowerCase() ? "1px solid #0070F0" : "1px solid #cbcbcb"}`,
@@ -24,7 +24,7 @@ const LayoutButton = ({ title, style, selectedLayout, setSelectedLayout }) => {
                     <div style={{ ...style, backgroundColor: `${selectedLayout === title.toLowerCase() ? "#0070F0" : "#cbcbcb"}` }}></div>
                 </div>
                 <p className="capitalize text-sm mt-1">{title}</p>
-            </div>
+            </button>
         </>
     );
 };
@@ -34,7 +34,10 @@ const Coulumns = ({ setSelectedColumn, selectedColumn }) => {
         <div className="my-6">
             <h2 className="text-sm font-semibold">Columns</h2>
             <div className="flex items-center gap-[1.4rem] my-2">
-                <div
+                <button
+                    type="button"
+                    aria-pressed={selectedColumn === 1}
+                    aria-label="Single column layout"
                     className="rounded-[.6rem] px-[.4rem] py-[.8rem] grid place-content-center cursor-pointer w-[6rem] hover:opacity-80"
                     style={{
                         border: `${selectedColumn === 1 ? "1px solid #0070F0" : "1px solid #cbcbcb"}`,
@@ -46,9 +49,12 @@ const Coulumns = ({ setSelectedColumn, selectedColumn }) => {
                         <rect y="8" width="63" height="4" rx="2" fill={selectedColumn === 1 ? "#0070f0" : "#C7C7C7"} />
                         <rect y="17" width="63" height="4" rx="2" fill={selectedColumn === 1 ? "#0070f0" : "#C7C7C7"} />
                     </svg>
-                </div>
+                </button>
 
-                <div
+                <button
+                    type="button"
+                    aria-pressed={selectedColumn === 2}
+                    aria-label="Two column layout"
                     className="rounded-[.6rem] px-[.4rem] py-[.8rem] grid place-content-center cursor-pointer w-[6rem] hover:opacity-80"
                     style={{
                         border: `${selectedColumn === 2 ? "1px solid #0070F0" : "1px solid #cbcbcb"}`,
@@ -63,7 +69,7 @@ const Coulumns = ({ setSelectedColumn, selectedColumn }) => {
                         <rect y="17" width="28" height="4" rx="2" fill={selectedColumn === 2 ? "#0070f0" : "#C7C7C7"} />
                         <rect x="35" y="17" width="28" height="4" rx="2" fill={selectedColumn === 2 ? "#0070f0" : "#C7C7C7"} />
                     </svg>
-                </div>
+                </button>
             </div>
         </div>
     );

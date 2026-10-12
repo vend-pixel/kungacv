@@ -7,6 +7,7 @@ import Footer from "@components/LandingPage/Footer";
 import HowItWorks from "@components/LandingPage/HowItWorks";
 import BottomSection from "@components/LandingPage/BottomSection";
 import TemplatesSection from "@components/LandingPage/TemplatesSection";
+import FAQ from "@components/LandingPage/FAQ";
 
 const Home = () => {
     return (
@@ -46,6 +47,7 @@ const Home = () => {
             </section>
             <HowItWorks />
             <TemplatesSection />
+            <FAQ />
             <BottomSection />
             <Footer />
         </>
