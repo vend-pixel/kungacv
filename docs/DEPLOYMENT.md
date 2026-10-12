@@ -35,11 +35,13 @@ Non-secret defaults are defined in the Blueprint. The following values must be s
 | `PAYCHANGU_WEBHOOK_SECRET` | Webhook HMAC secret |
 | `ADMIN_SIGNUP_TOKEN` | Optional protected admin signup token |
 
-`MONGO_URI`, `MONGO_DB_NAME`, and `JWT_SECRET` are required at startup. In production, `JWT_SECRET` must be at least 32 characters and must not use the placeholder from `.env.example`. When MongoDB credentials are supplied, the API passes `MONGO_AUTH_SOURCE`, `MONGO_USERNAME`, and `MONGO_PASSWORD` to Mongoose.
+`MONGO_URI`, `MONGO_DB_NAME`, and `JWT_SECRET` are required at startup. The API also accepts Atlas-generated aliases `MONGODB_URI`, `MONGODB_USERNAME`, and `MONGODB_PASSWORD`. In production, `JWT_SECRET` must be at least 32 characters and must not use the placeholder from `.env.example`. When MongoDB credentials are supplied, the API passes the configured authentication values to Mongoose.
 
 Use a separate Mongo database, JWT secret, and PayChangu test credentials for staging. Never copy production secrets into GitHub Actions or local issue comments.
 
 If Render logs `Missing required environment variables: MONGO_URI, JWT_SECRET`, the service is failing before Nest starts. In the Render dashboard, open both `kungacv-api` and `kungacv-api-staging`, add the missing values under **Environment**, save, and redeploy. The `sync: false` entries in `render.yaml` declare secrets but intentionally do not provide their values. Confirm the next deploy logs `server_started` and that `/health/ready` returns HTTP 200.
+
+For MongoDB Atlas, set `MONGODB_URI` or `MONGO_URI` to the complete driver URI, including any `?appName=...` query. Set `MONGO_DB_NAME=kungacv`. The API inserts the database name before query parameters, so the Atlas-generated URI format is supported. Do not leave `<db_password>` as a literal placeholder; use the actual database-user password, URL-encoding reserved characters when necessary. Atlas Network Access must also allow Render’s outbound connection.
 
 ## Release procedure
 

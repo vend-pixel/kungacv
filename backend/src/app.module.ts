@@ -5,7 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // INNER IMPORTS
-import appConfig, { validateEnvironment } from 'config/app.config';
+import appConfig, {
+  buildMongoUri,
+  validateEnvironment,
+} from 'config/app.config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -29,7 +32,10 @@ import { RateLimitGuard } from './shared/guards/rate-limit.guard';
       imports: [ConfigModule], // Import the ConfigModule
       useFactory: async (configService: ConfigService) => {
         const options: any = {
-          uri: `${configService.get('mongo_db.url')}/${configService.get('mongo_db.db_name')}`,
+          uri: buildMongoUri(
+            configService.get('mongo_db.url'),
+            configService.get('mongo_db.db_name'),
+          ),
           useNewUrlParser: true,
           useUnifiedTopology: true,
         };
