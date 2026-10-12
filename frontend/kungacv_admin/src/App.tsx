@@ -5,7 +5,6 @@ import { Login, Layout } from "./layout";
 import { Dashboard } from "./Dashboard";
 import { lightTheme } from "./layout/themes";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import DescriptionIcon from "@mui/icons-material/Description";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
@@ -32,7 +31,6 @@ const App = () => (
       list={ListGuesser}
       icon={AssignmentTurnedInIcon}
     />
-    <Resource name="templates" list={ListGuesser} icon={DescriptionIcon} />
     <Resource
       name="users"
       list={UserList}
