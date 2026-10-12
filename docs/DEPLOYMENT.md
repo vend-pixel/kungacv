@@ -39,6 +39,8 @@ Non-secret defaults are defined in the Blueprint. The following values must be s
 
 Use a separate Mongo database, JWT secret, and PayChangu test credentials for staging. Never copy production secrets into GitHub Actions or local issue comments.
 
+If Render logs `Missing required environment variables: MONGO_URI, JWT_SECRET`, the service is failing before Nest starts. In the Render dashboard, open both `kungacv-api` and `kungacv-api-staging`, add the missing values under **Environment**, save, and redeploy. The `sync: false` entries in `render.yaml` declare secrets but intentionally do not provide their values. Confirm the next deploy logs `server_started` and that `/health/ready` returns HTTP 200.
+
 ## Release procedure
 
 1. Merge a feature PR into `develop` after CI is green.
@@ -52,7 +54,19 @@ Use a separate Mongo database, JWT secret, and PayChangu test credentials for st
 
 Mongoose creates the declared collection indexes during service startup. Review index-build output after the first production deploy and verify the expected indexes with MongoDB `db.collection.getIndexes()` for `users`, `resumes`, `payments`, `purchases`, and `subscriptions`. For large existing collections, schedule index creation during a low-traffic window and confirm there are no duplicate `purchases.uid` values before the unique index is built.
 
-The API applies per-IP in-memory limits to login, signup, admin authentication, payment initiation, and payment webhooks. Responses include `X-RateLimit-*`, `RateLimit-Policy`, and `Retry-After` headers when a quota is active. These limits reset when an instance restarts and are not shared across multiple API instances; before horizontal scaling, replace the guard storage with a shared Redis or equivalent atomic counter.
+The API currently applies per-IP in-memory limits to login, signup, admin authentication, payment initiation, and payment webhooks. Responses include `X-RateLimit-*`, `RateLimit-Policy`, and `Retry-After` headers when a quota is active. These limits reset when an instance restarts and are not shared across multiple API instances.
+
+### Redis migration strategy
+
+Before horizontal scaling, migrate the guard storage behind a `RateLimitStore` interface using this staged plan:
+
+1. **Prepare:** provision a private Redis instance in the same region, restrict network access, enable TLS/authentication, and add `REDIS_URL` as a Render secret. Define a key version such as `rl:v1:{policy}:{client}:{windowStart}`; hash or truncate untrusted client identifiers so keys cannot grow without bound.
+2. **Shadow mode:** write Redis counters with an atomic `INCR` plus `EXPIRE` (or one Lua script), but continue enforcing the local store. Emit sampled comparison metrics for local versus Redis decisions; do not log IP addresses or request bodies.
+3. **Redis primary:** switch enforcement to Redis after shadow counts agree across a staging load test. Use one atomic operation for increment, limit, and remaining count so concurrent instances cannot overshoot the quota.
+4. **Fallback policy:** fail closed for credential-probing routes (`/auth/login`, `/admin/login`) if Redis is unavailable; fail open with an alert for signed payment webhooks so provider retries are not discarded. Keep a short-lived local emergency bucket only as a circuit-breaker guard, not as the source of truth.
+5. **Rollback:** retain the local implementation behind a feature/config switch for one release. If Redis latency or errors breach the error budget, switch enforcement back to local storage, drain the Redis keys, and investigate without changing route limits.
+
+Monitor Redis command latency, error rate, key cardinality, limiter decision mismatches, and 429 rates before and after cutover. Never put credentials, raw request bodies, or full IP addresses in logs.
 
 ## Rollback procedure
 
@@ -66,3 +80,4 @@ Render keeps prior deploys for each service. Open the affected service, select t
 - Rotate JWT, database, and payment secrets after suspected exposure.
 - Keep the `develop` staging database disposable and scrubbed of real user data.
 - Monitor rate-limit responses and review whether legitimate PayChangu webhook retries are being throttled.
+- Treat missing required Render secrets as a deployment-blocking configuration error, not an application retry condition.

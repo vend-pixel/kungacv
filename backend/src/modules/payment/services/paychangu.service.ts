@@ -10,6 +10,9 @@ import { ConfigService } from '@nestjs/config';
 const PAYCHANGU_API = 'https://api.paychangu.com';
 const GATEWAY_TIMEOUT_MS = 10_000;
 
+const errorStack = (error: unknown): string | undefined =>
+  error instanceof Error ? error.stack : undefined;
+
 export interface VerifyResult {
   tx_ref?: string;
   reference?: string;
@@ -59,7 +62,13 @@ export class PayChanguService {
         signal: controller.signal,
       });
     } catch (err) {
-      this.logger.error(`initiate request failed: ${String(err)}`);
+      this.logger.error(
+        JSON.stringify({
+          event: 'paychangu_request_failed',
+          operation: 'initiate',
+        }),
+        errorStack(err),
+      );
       throw new BadGatewayException('payment gateway unavailable');
     } finally {
       clearTimeout(timeout);
@@ -68,7 +77,13 @@ export class PayChanguService {
     const json = await res.json().catch(() => null);
 
     if (!res.ok || json?.status !== 'success') {
-      this.logger.error(`initiate failed: ${JSON.stringify(json)}`);
+      this.logger.error(
+        JSON.stringify({
+          event: 'paychangu_response_failed',
+          operation: 'initiate',
+          statusCode: res.status,
+        }),
+      );
       throw new BadGatewayException('could not start payment with gateway');
     }
 
@@ -98,14 +113,26 @@ export class PayChanguService {
 
       if (!res.ok || !json?.data) {
         this.logger.warn(
-          `verify ${txRef}: ${res.status} ${JSON.stringify(json)}`,
+          JSON.stringify({
+            event: 'paychangu_response_failed',
+            operation: 'verify',
+            statusCode: res.status,
+            txRef,
+          }),
         );
         return null;
       }
 
       return json.data;
     } catch (err) {
-      this.logger.error(`verify ${txRef} failed: ${String(err)}`);
+      this.logger.error(
+        JSON.stringify({
+          event: 'paychangu_request_failed',
+          operation: 'verify',
+          txRef,
+        }),
+        errorStack(err),
+      );
       return null;
     } finally {
       clearTimeout(timeout);
