@@ -1,66 +1,52 @@
 # KungaCV Release Readiness Evidence
 
 **Validation date:** 2026-10-12
-**Checked-out commit:** `54c7567` (`origin/main`)
-**Local branch:** `feature/market-readiness-phase0` (created locally because the named remote branch was not present)
+**Merged upstream base:** `57bba16` (`Harden backend production boundaries and user privacy (#42)`)
+**Implementation commit:** `96206b8` (`feat: complete market readiness accessibility and smoke checks`)
+**Local branch:** `feature/market-readiness-phase0`, clean and three commits ahead of `origin/main`
 
-## Scope and repository state
+## Handoff recovery
 
-The handoff identified commit `587612e` and branch `feature/market-readiness-phase0` as the expected starting point. In this sandbox checkout, neither is available on the remote:
+The handoff-referenced commit `587612e` and remote branch `feature/market-readiness-phase0` were not available in the repository. The latest remote `main` was therefore used as the safe base, preserving the merged backend hardening work and the local evidence commit. No destructive reset, rebase, remote branch modification, PR merge, or GitHub settings change was performed.
 
-- `git cat-file -t 587612e` reports that the object does not exist.
-- `origin` has `main`, `develop`, two operational branches, and one Dependabot branch; it does not have `feature/market-readiness-phase0`.
-- The current `main` tip is `54c7567` (`Bump the admin-patch-and-minor group (#40)`).
-- The product-readiness documents and smoke script described by the handoff are not present in this checkout.
+## Completed product-readiness work
 
-No existing product changes were reset, rebased, or overwritten. No remote branches, pull requests, protection settings, or account settings were changed.
+The landing page now has a deterministic twelve-template gallery using direct local WebP assets. Every template card is keyboard-focusable, has descriptive alternative text, and links to `/resume/create?template=<id>`. The editor reads that query parameter and applies the matching preset through a focused Redux action without changing the existing customization state model. An accessible FAQ disclosure section was also added, and the uncontrolled public font-import waterfall was removed.
 
-## Phase 4 — CI/dependency policy verification
+The editor now exposes a skip link, navigation and main landmarks, an accessible preview region, labeled back/rename/download/preview/close/add-content controls, active editor-section semantics, and a polite live save-status region. Desktop and mobile Content/Customize controls are native buttons and remain responsive to the existing component state.
 
-Verified locally on `54c7567`:
+Font families, font choices, layout directions, column layouts, color modes, color swatches, and multicolor palettes now use native buttons with pressed-state semantics. Color checkbox inputs have explicit associated labels. Existing Redux payloads and customization effects were preserved.
 
-- `.github/dependabot.yml` ignores all npm semver-major updates, groups minor/patch updates per application, and limits each npm queue to three open PRs.
-- `.github/workflows/ci.yml` defines strict `Backend quality`, `Client quality`, and `Admin quality` jobs.
-- The dependency security audit is the only explicitly advisory job.
-- All package scripts invoked by the CI workflow exist.
-- `npm install --package-lock-only --dry-run` completed for all three applications, indicating lockfiles are synchronized with their manifests.
+A production smoke command is now available as `frontend/kungacv_client/scripts/production-smoke.mjs` and exposed as `npm run smoke`. It validates the landing route, primary copy, deterministic template links, editor route, client bundle references, direct local template assets, and image content types.
 
-GitHub branch-protection endpoints for both `main` and `develop` returned HTTP 403 (`Resource not accessible by integration`). Therefore, required checks, approval requirements, linear-history enforcement, and conversation-resolution settings could not be independently verified during this takeover.
+## Validation results
 
-## Phase 5 — Full-stack regression evidence
+The reproducible validation sequence used `npm ci --ignore-scripts` in all three applications. The backend native `argon2` binding was rebuilt locally because `--ignore-scripts` intentionally skips native install scripts.
 
-All strict local quality gates passed after rebuilding the native `argon2` binding that is omitted by the handoff-recommended `npm ci --ignore-scripts` install:
+| Gate | Result |
+|---|---|
+| Backend lint | Passed |
+| Backend typecheck | Passed |
+| Backend tests | **7 suites, 59 tests passed** |
+| Backend build | Passed |
+| Client lint | Passed |
+| Client production build | Passed |
+| Admin lint | Passed |
+| Admin production build | Passed |
+| Client production smoke | Passed on a fresh server at port 3016 |
+| Lockfile dry-run checks | Passed for backend, client, and admin |
+| `git diff --check` | Passed |
 
-- **Backend:** lint passed; typecheck passed; **6 test suites and 52 tests passed**; build passed.
-- **Client:** lint passed; production build passed.
-- **Admin:** lint passed; production build passed.
+The first smoke attempt hit an already-running process on port 3015; the new server did not start, so that result was discarded. The successful rerun used an unused port and verified a genuinely fresh production server.
 
-A production client server was started from the fresh build on port 3015. Equivalent HTTP smoke checks passed:
+## Remote repository evidence
 
-- `GET /` → HTTP 200.
-- `GET /resume/create` → HTTP 200.
-- Landing HTML contained KungaCV, resume, and template markers.
-- Direct public SVG assets returned HTTP 200 with `image/svg+xml` content type.
+PR #42 was merged into `main` as commit `57bba16`. There are currently no open pull requests. GitHub reports both `main` and `develop` as protected branches. Detailed protection-rule reads still return HTTP 403 (`Resource not accessible by integration`), so the exact required-check and approval-rule configuration cannot be independently read through the current CLI token.
 
-The described `npm run smoke` command could not be run because `frontend/kungacv_client/package.json` in the current checkout has no `smoke` script and no `scripts/production-smoke.mjs` file.
+No remote settings were changed by this task. The local branch is intentionally not pushed or opened as a PR because the handoff explicitly requested avoiding unnecessary approval friction.
 
-Known warnings observed:
+## Known warnings and follow-ups
 
-- npm reports existing dependency advisories during installation; these are not silently fixed or upgraded.
-- Backend and admin lint report the existing TypeScript-version compatibility warning from `@typescript-eslint`.
-- The client build emits existing customization-store console noise during static generation.
-- npm reports deprecated transitive packages.
+Dependency installation reports existing advisories and deprecated transitive packages; no broad or major dependency upgrade was performed. Backend and admin lint report the existing TypeScript-version compatibility warning from `@typescript-eslint`. Client static generation still emits existing customization-store console noise. These warnings did not fail the strict quality gates.
 
-## Phase 6 — Repository/remote closeout
-
-- Local working tree is clean after the documentation commit listed below.
-- No open pull requests were reported by GitHub CLI.
-- No remote settings were modified.
-- Remote branch protection remains unverified because of the GitHub API permission response above.
-- Remote CI has recent mixed results from concurrent Dependabot activity, but GitHub reported no run specifically associated with the current `54c7567` commit when queried.
-
-## Remaining blockers
-
-1. Recover or provide the intended `feature/market-readiness-phase0` branch or commit `587612e` before claiming the product-readiness Phases 0–3 and their associated smoke test are present.
-2. Grant a GitHub token/app permission that can read branch protection for `main` and `develop`, then re-run the protection verification.
-3. If the smoke test is expected on current `main`, restore or add it as a separate focused implementation task rather than weakening existing CI.
+A live browser-width/manual keyboard pass was not available in the sandbox validation path; the implementation was validated through semantic source inspection, lint, production build, and fresh-server smoke checks. The next practical step is an optional human browser pass at desktop, tablet, and mobile widths before pushing or opening a PR.
