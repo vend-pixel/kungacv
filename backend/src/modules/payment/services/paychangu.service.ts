@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 const PAYCHANGU_API = 'https://api.paychangu.com';
+const GATEWAY_TIMEOUT_MS = 10_000;
 
 export interface VerifyResult {
   tx_ref?: string;
@@ -42,10 +43,12 @@ export class PayChanguService {
   // POST https://api.paychangu.com/payment — returns { checkout_url, data }.
   async initiate(payload: Record<string, unknown>): Promise<any> {
     this.assertConfigured();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), GATEWAY_TIMEOUT_MS);
 
-    const res: any = await (globalThis as any).fetch(
-      `${PAYCHANGU_API}/payment`,
-      {
+    let res: any;
+    try {
+      res = await (globalThis as any).fetch(`${PAYCHANGU_API}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,8 +56,14 @@ export class PayChanguService {
           Authorization: `Bearer ${this.secretKey}`,
         },
         body: JSON.stringify(payload),
-      },
-    );
+        signal: controller.signal,
+      });
+    } catch (err) {
+      this.logger.error(`initiate request failed: ${String(err)}`);
+      throw new BadGatewayException('payment gateway unavailable');
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const json = await res.json().catch(() => null);
 
@@ -70,6 +79,8 @@ export class PayChanguService {
   // mandated by PayChangu before granting (research-paychangu.md).
   async verify(txRef: string): Promise<VerifyResult | null> {
     this.assertConfigured();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), GATEWAY_TIMEOUT_MS);
 
     try {
       const res: any = await (globalThis as any).fetch(
@@ -79,6 +90,7 @@ export class PayChanguService {
             Accept: 'application/json',
             Authorization: `Bearer ${this.secretKey}`,
           },
+          signal: controller.signal,
         },
       );
 
@@ -95,6 +107,8 @@ export class PayChanguService {
     } catch (err) {
       this.logger.error(`verify ${txRef} failed: ${String(err)}`);
       return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

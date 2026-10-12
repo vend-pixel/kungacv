@@ -9,6 +9,15 @@ describe('AuthService', () => {
     createUser: jest.fn(),
     findOne: jest.fn(),
     updateUser: jest.fn(),
+    normalizeEmail: jest.fn((email: string) => email.trim().toLowerCase()),
+    toPublicUser: jest.fn((user: any) => {
+      if (!user) return user;
+      const publicUser = { ...user };
+      delete publicUser.password;
+      delete publicUser.deleted_at;
+      delete publicUser.deleted_by;
+      return publicUser;
+    }),
   };
   const jwtService = { signAsync: jest.fn().mockResolvedValue('signed-token') };
   let service: AuthService;
@@ -145,6 +154,35 @@ describe('AuthService', () => {
         role: 'user',
         active: true,
       });
+    });
+
+    it('normalizes email before lookup', async () => {
+      userService.findOne.mockResolvedValue(null);
+      await expect(
+        service.signIn({ email: '  JANE@EXAMPLE.ORG ', password: 'secret' }),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(userService.findOne).toHaveBeenCalledWith({
+        email: 'jane@example.org',
+        role: 'user',
+        active: true,
+      });
+    });
+  });
+
+  it('redacts private fields from a public profile', async () => {
+    userService.findOne.mockResolvedValue({
+      uid: 'u1',
+      email: 'jane@example.org',
+      password: 'hash',
+      deleted_at: null,
+      deleted_by: null,
+      name: 'Jane',
+    });
+    const profile = await service.getPublicProfile('jane@example.org');
+    expect(profile).toEqual({
+      uid: 'u1',
+      email: 'jane@example.org',
+      name: 'Jane',
     });
   });
 });

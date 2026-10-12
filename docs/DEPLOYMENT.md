@@ -6,7 +6,7 @@ The repository defines six Render web services in [`render.yaml`](../render.yaml
 
 | Service | Runtime | Build | Start | Health check |
 |---|---|---|---|---|
-| API | Node/NestJS | `cd backend && npm ci && npm run build` | `cd backend && npm run start:prod` | `/health` |
+| API | Node/NestJS | `cd backend && npm ci && npm run build` | `cd backend && npm run start:prod` | `/health/ready` |
 | Client | Node/Next.js | `cd frontend/kungacv_client && npm ci && npm run build` | `cd frontend/kungacv_client && npm start` | Render default |
 | Admin | Node/Next.js | `cd frontend/kungacv_admin && npm ci && npm run build` | `cd frontend/kungacv_admin && npm start` | Render default |
 
@@ -18,7 +18,7 @@ The services use Frankfurt to reduce latency for Malawi and regional users. Free
 2. Create the Blueprint from `render.yaml`, or create the six services with the same names and commands.
 3. Enter staging secrets into the `*-staging` API service and production secrets into `kungacv-api`.
 4. Set `NEXT_PUBLIC_API_URL` on each client service to the matching API URL. Because this is a public Next.js build variable, changing it requires a new client build.
-5. Confirm the API `/health` endpoint returns HTTP 200 before testing authentication or payments.
+5. Confirm the API `/health/ready` endpoint returns HTTP 200 before testing authentication or payments. Use `/health/live` to distinguish a running process from a Mongo-ready service.
 
 ## Required API environment variables
 
@@ -27,6 +27,7 @@ Non-secret defaults are defined in the Blueprint. The following values must be s
 | Variable | Purpose |
 |---|---|
 | `MONGO_URI` | MongoDB connection endpoint |
+| `MONGO_DB_NAME` | Database name used by the API |
 | `MONGO_AUTH_SOURCE` | MongoDB authentication source |
 | `MONGO_USERNAME` / `MONGO_PASSWORD` | Database credentials when required |
 | `JWT_SECRET` | Token signing secret; use a unique random value per environment |
@@ -34,13 +35,15 @@ Non-secret defaults are defined in the Blueprint. The following values must be s
 | `PAYCHANGU_WEBHOOK_SECRET` | Webhook HMAC secret |
 | `ADMIN_SIGNUP_TOKEN` | Optional protected admin signup token |
 
+`MONGO_URI`, `MONGO_DB_NAME`, and `JWT_SECRET` are required at startup. In production, `JWT_SECRET` must be at least 32 characters and must not use the placeholder from `.env.example`. When MongoDB credentials are supplied, the API passes `MONGO_AUTH_SOURCE`, `MONGO_USERNAME`, and `MONGO_PASSWORD` to Mongoose.
+
 Use a separate Mongo database, JWT secret, and PayChangu test credentials for staging. Never copy production secrets into GitHub Actions or local issue comments.
 
 ## Release procedure
 
 1. Merge a feature PR into `develop` after CI is green.
 2. Confirm Render staging has deployed the new commit.
-3. Run smoke checks: `/health`, landing page, login page, resume editor, registration, and a PayChangu test transaction when payment code changed.
+3. Run smoke checks: `/health/live`, `/health/ready`, landing page, login page, resume editor, registration, and a PayChangu test transaction when payment code changed.
 4. Open a release PR from `develop` to `main` and merge only after staging verification.
 5. Confirm the three production Render services deploy the same commit.
 6. Record the release tag and deploy IDs in the release notes.
