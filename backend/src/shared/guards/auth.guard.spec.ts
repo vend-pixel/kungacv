@@ -54,6 +54,19 @@ describe('AuthGuard', () => {
     );
   });
 
+  it('does not expose JWT verification details in the error response', async () => {
+    const context = makeContext('Bearer not-a-jwt');
+
+    try {
+      await guard.canActivate(context);
+      fail('expected authorization to fail');
+    } catch (error) {
+      expect((error as UnauthorizedException).getResponse()).toEqual({
+        message: 'invalid or expired token',
+      });
+    }
+  });
+
   it('accepts a valid token and attaches the payload to req.user', async () => {
     const token = await jwtService.signAsync({
       uid: 'u1',

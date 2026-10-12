@@ -162,7 +162,18 @@ export class PaymentService {
 
     // Standard checkout payloads carry tx_ref; some events only carry the
     // numeric reference — match either against our tx_ref.
-    const txRef = event?.tx_ref || event?.reference || event?.data?.tx_ref;
+    const candidateTxRef =
+      event?.tx_ref || event?.reference || event?.data?.tx_ref;
+    const txRef =
+      typeof candidateTxRef === 'string' &&
+      candidateTxRef.length <= 100 &&
+      candidateTxRef.startsWith('kunga_')
+        ? candidateTxRef
+        : undefined;
+
+    if (candidateTxRef && !txRef) {
+      this.logger.warn('webhook ignored invalid transaction reference');
+    }
 
     if (txRef) {
       const payment = await this.paymentModel.findOne({ tx_ref: txRef });

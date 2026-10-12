@@ -247,6 +247,23 @@ describe('PaymentService', () => {
       expect(warn).toHaveBeenCalled();
     });
 
+    it('ignores malformed transaction references without querying MongoDB', async () => {
+      const warn = jest
+        .spyOn(service['logger'], 'warn')
+        .mockImplementation(() => undefined);
+      const malformed = Buffer.from(
+        JSON.stringify({ tx_ref: 'not-a-kunga-reference' }),
+      );
+
+      const result = await service.handleWebhook(malformed, sign(malformed));
+
+      expect(result).toEqual({ received: true });
+      expect(paymentModel.findOne).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledWith(
+        'webhook ignored invalid transaction reference',
+      );
+    });
+
     it('settles a pending payment', async () => {
       paymentModel.findOne.mockResolvedValue({
         tx_ref: 'kunga_1',

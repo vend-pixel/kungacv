@@ -40,8 +40,6 @@ export class PurchaseService {
       ..._getPurchaseDataAggregationFilter(query),
     ];
 
-    console.log('QUERY', JSON.stringify(baseQuery));
-
     return this.purchaseSchema.aggregate(baseQuery);
   }
 
@@ -58,8 +56,6 @@ export class PurchaseService {
       purchased_date: purchase_data.purchased_date || new Date(),
       active: true,
     };
-
-    console.log(`payload`, payload);
 
     const doc = await this.purchaseSchema.create(payload);
 
