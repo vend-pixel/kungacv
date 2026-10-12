@@ -119,7 +119,15 @@ export class PaymentService {
     } catch (err) {
       await this.paymentModel
         .updateOne({ tx_ref, status: 'pending' }, { status: 'failed' })
-        .catch(() => undefined);
+        .catch((error) => {
+          this.logger.error(
+            JSON.stringify({
+              event: 'payment_failure_update_failed',
+              txRef: tx_ref,
+            }),
+            error instanceof Error ? error.stack : undefined,
+          );
+        });
       throw err;
     }
   }
@@ -180,7 +188,10 @@ export class PaymentService {
 
       if (payment && payment.status === 'pending') {
         await this.settle(txRef).catch((err) =>
-          this.logger.error(`webhook settle ${txRef}: ${String(err)}`),
+          this.logger.error(
+            JSON.stringify({ event: 'webhook_settlement_failed', txRef }),
+            err instanceof Error ? err.stack : undefined,
+          ),
         );
       } else if (!payment) {
         this.logger.warn(`webhook for unknown tx_ref ${txRef}`);
@@ -315,7 +326,13 @@ export class PaymentService {
         { upsert: true },
       )
       .catch((err) =>
-        this.logger.error(`purchase audit ${payment.tx_ref}: ${String(err)}`),
+        this.logger.error(
+          JSON.stringify({
+            event: 'purchase_audit_failed',
+            txRef: payment.tx_ref,
+          }),
+          err instanceof Error ? err.stack : undefined,
+        ),
       );
 
     this.logger.log(

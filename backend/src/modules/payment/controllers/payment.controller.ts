@@ -12,6 +12,7 @@ import { Request } from 'express';
 
 // INNER IMPORTS
 import { AuthGuard } from 'src/shared/guards/auth.guard';
+import { RateLimit } from 'src/shared/guards/rate-limit.decorator';
 import { CustomRequest } from 'src/shared/interfaces';
 import { InitiatePaymentDto } from '../dto';
 import { PaymentService } from '../services/payment.service';
@@ -28,6 +29,7 @@ export class PaymentController {
 
   @Post('/initiate')
   @UseGuards(AuthGuard)
+  @RateLimit({ name: 'payment-initiate', limit: 10, windowMs: 60_000 })
   async initiate(@Body() dto: InitiatePaymentDto, @Req() req: CustomRequest) {
     return { payment: await this.paymentService.initiate(req.user, dto) };
   }
@@ -35,6 +37,7 @@ export class PaymentController {
   // PayChangu server-to-server callback — authenticated by the HMAC
   // `Signature` header, not by JWT.
   @Post('/webhook')
+  @RateLimit({ name: 'payment-webhook', limit: 120, windowMs: 60_000 })
   async webhook(@Req() req: Request) {
     const rawBody: Buffer = (req as any).rawBody;
     const signature = String(req.headers['signature'] || '');

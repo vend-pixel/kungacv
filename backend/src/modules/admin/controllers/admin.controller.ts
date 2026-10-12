@@ -22,6 +22,7 @@ import { hash } from 'argon2';
 // INNER IMPORTS
 import { CustomRequest, Query as IQuery } from 'src/shared/interfaces';
 import { AuthGuard } from 'src/shared/guards/auth.guard';
+import { RateLimit } from 'src/shared/guards/rate-limit.decorator';
 import { AdminService } from '../services/admin.service';
 import { UserService } from 'src/modules/user/services/user.service';
 import { AuthService } from 'src/modules/auth/services/auth.service';
@@ -38,6 +39,7 @@ export class AdminController {
 
   // AUTH
   @Post('/login')
+  @RateLimit({ name: 'admin-login', limit: 10, windowMs: 60_000 })
   async login(@Body() payload: LoginUserDto) {
     const loginAdmin = await this.authService.signIn(payload, 'admin');
 
@@ -46,6 +48,7 @@ export class AdminController {
 
   @Post('/signup')
   @HttpCode(201)
+  @RateLimit({ name: 'admin-signup', limit: 5, windowMs: 60_000 })
   async signUp(
     @Body() payload: CreateUserDto,
     @Headers('x-admin-signup-token') token?: string,

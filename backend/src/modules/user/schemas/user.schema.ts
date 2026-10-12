@@ -41,3 +41,5 @@ export class User extends Document {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ active: 1, email: 1 });
+UserSchema.index({ active: 1, name: 1 });
