@@ -37,3 +37,6 @@ export class Purchase {
 }
 
 export const PurchaseSchema = SchemaFactory.createForClass(Purchase);
+PurchaseSchema.index({ uid: 1 }, { unique: true });
+PurchaseSchema.index({ purchase_uid: 1 });
+PurchaseSchema.index({ user_uid: 1, active: 1, purchased_date: -1 });

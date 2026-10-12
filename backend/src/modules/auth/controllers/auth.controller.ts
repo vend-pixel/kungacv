@@ -17,6 +17,7 @@ import { hash, verify } from 'argon2';
 import { CustomRequest } from 'src/shared/interfaces';
 import { AuthService } from '../services/auth.service';
 import { AuthGuard } from '../../../shared/guards/auth.guard';
+import { RateLimit } from '../../../shared/guards/rate-limit.decorator';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from '../dto';
 
 @Controller('auth')
@@ -25,6 +26,7 @@ export class AuthController {
 
   @Post('/signup')
   @HttpCode(201)
+  @RateLimit({ name: 'auth-signup', limit: 5, windowMs: 60_000 })
   async signUp(@Body() user: CreateUserDto) {
     user.deleted_at = null;
     user.deleted_by = null;
@@ -36,6 +38,7 @@ export class AuthController {
   }
 
   @Post('/login')
+  @RateLimit({ name: 'auth-login', limit: 10, windowMs: 60_000 })
   async login(@Body() user: LoginUserDto) {
     const data = await this.authService.signIn(user);
 

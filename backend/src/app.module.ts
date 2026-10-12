@@ -1,5 +1,6 @@
 // THIRD PARTY IMPORTS
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -13,9 +14,11 @@ import { PurchaseModule } from './modules/purchase/purchase.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ResumeModule } from './modules/resume/resume.module';
 import { HealthController } from './health.controller';
+import { RateLimitGuard } from './shared/guards/rate-limit.guard';
 
 @Module({
   controllers: [HealthController],
+  providers: [{ provide: APP_GUARD, useClass: RateLimitGuard }],
   imports: [
     ConfigModule.forRoot({
       load: [appConfig],

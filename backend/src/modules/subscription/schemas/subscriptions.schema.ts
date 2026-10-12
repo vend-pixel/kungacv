@@ -33,3 +33,5 @@ export class Subscription extends Document {
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);
+SubscriptionSchema.index({ active: 1, name: 1 });
+SubscriptionSchema.index({ active: 1, price: 1 });

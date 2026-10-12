@@ -48,6 +48,12 @@ Use a separate Mongo database, JWT secret, and PayChangu test credentials for st
 5. Confirm the three production Render services deploy the same commit.
 6. Record the release tag and deploy IDs in the release notes.
 
+## Database indexes and rate limits
+
+Mongoose creates the declared collection indexes during service startup. Review index-build output after the first production deploy and verify the expected indexes with MongoDB `db.collection.getIndexes()` for `users`, `resumes`, `payments`, `purchases`, and `subscriptions`. For large existing collections, schedule index creation during a low-traffic window and confirm there are no duplicate `purchases.uid` values before the unique index is built.
+
+The API applies per-IP in-memory limits to login, signup, admin authentication, payment initiation, and payment webhooks. Responses include `X-RateLimit-*`, `RateLimit-Policy`, and `Retry-After` headers when a quota is active. These limits reset when an instance restarts and are not shared across multiple API instances; before horizontal scaling, replace the guard storage with a shared Redis or equivalent atomic counter.
+
 ## Rollback procedure
 
 Render keeps prior deploys for each service. Open the affected service, select the last successful deploy, and choose rollback. Roll back the API before the clients when an API contract regression is causing user impact. Do not roll back database changes unless the migration is explicitly reversible; prefer a forward-compatible fix.
@@ -59,3 +65,4 @@ Render keeps prior deploys for each service. Open the affected service, select t
 - Confirm payment webhooks use HTTPS and signature validation remains enabled.
 - Rotate JWT, database, and payment secrets after suspected exposure.
 - Keep the `develop` staging database disposable and scrubbed of real user data.
+- Monitor rate-limit responses and review whether legitimate PayChangu webhook retries are being throttled.
