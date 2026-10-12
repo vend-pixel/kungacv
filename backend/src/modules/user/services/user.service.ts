@@ -19,12 +19,33 @@ import { Query as Iquery } from 'src/shared/interfaces';
 export class UserService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
 
+  normalizeEmail(email: string): string {
+    return String(email || '')
+      .trim()
+      .toLowerCase();
+  }
+
+  toPublicUser(user: any) {
+    if (!user) return user;
+    const value = typeof user.toObject === 'function' ? user.toObject() : user;
+    const publicUser = { ...value };
+    delete publicUser.password;
+    delete publicUser.deleted_by;
+    delete publicUser.deleted_at;
+    return publicUser;
+  }
+
   async findOne(queryObj: any = {}): Promise<User | undefined> {
-    return this.userModel.findOne(queryObj);
+    const normalizedQuery = { ...queryObj };
+    if (normalizedQuery.email) {
+      normalizedQuery.email = this.normalizeEmail(normalizedQuery.email);
+    }
+    return this.userModel.findOne(normalizedQuery);
   }
 
   async createUser(user: CreateUserDto) {
-    const checkUserExist = await this.findOne({ email: user.email });
+    const email = this.normalizeEmail(user.email);
+    const checkUserExist = await this.findOne({ email });
 
     if (checkUserExist) {
       throw new BadRequestException({
@@ -32,7 +53,7 @@ export class UserService {
       });
     }
 
-    const payload = { ...user, uid: nanoid() };
+    const payload = { ...user, email, uid: nanoid() };
 
     // CREATING USER
     const userCreated = await this.userModel.create(payload);
@@ -60,8 +81,9 @@ export class UserService {
       },
     ];
 
-    console.log('QUERY', JSON.stringify(baseQuery));
-
-    return this.userModel.aggregate(baseQuery);
+    return this.userModel.aggregate([
+      ...baseQuery,
+      { $project: { password: 0, deleted_by: 0, deleted_at: 0 } },
+    ]);
   }
 }

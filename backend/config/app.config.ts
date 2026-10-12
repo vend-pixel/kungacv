@@ -1,3 +1,25 @@
+export const PLACEHOLDER_JWT_SECRET = 'your_secret_key_change_me';
+
+export function validateEnvironment(env: Record<string, unknown>) {
+  const required = ['MONGO_URI', 'MONGO_DB_NAME', 'JWT_SECRET'];
+  const missing = required.filter((key) => !String(env[key] || '').trim());
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  const nodeEnv = String(env.NODE_ENV || 'development');
+  const jwtSecret = String(env.JWT_SECRET);
+  if (
+    nodeEnv === 'production' &&
+    (jwtSecret === PLACEHOLDER_JWT_SECRET || jwtSecret.length < 32)
+  ) {
+    throw new Error(
+      'JWT_SECRET must be a strong, non-placeholder secret in production',
+    );
+  }
+  return env;
+}
+
 export default () => ({
   server: {
     host: process.env.SERVER_HOST || '0.0.0.0',
@@ -23,5 +45,5 @@ export default () => ({
   client_url: process.env.CLIENT_URL || 'http://localhost:3001',
   cors_extra_origins: process.env.CORS_ORIGINS || '',
   admin_signup_token: process.env.ADMIN_SIGNUP_TOKEN,
-  env: process.env.NODE_ENV,
+  env: process.env.NODE_ENV || 'development',
 });

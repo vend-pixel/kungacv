@@ -11,7 +11,7 @@ services:
     autoDeploy: true
     buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm run start:prod
-    healthCheckPath: /health
+    healthCheckPath: /health/ready
     envVars:
       - key: NODE_ENV
         value: production
@@ -76,7 +76,7 @@ services:
     autoDeploy: true
     buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm run start:prod
-    healthCheckPath: /health
+    healthCheckPath: /health/ready
     envVars:
       - key: NODE_ENV
         value: staging
