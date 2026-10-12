@@ -30,10 +30,10 @@ describe('PaymentService', () => {
         key in overrides
           ? overrides[key]
           : key === 'paychangu.webhook_secret'
-          ? WEBHOOK_SECRET
-          : undefined,
+            ? WEBHOOK_SECRET
+            : undefined,
       ),
-    } as any);
+    }) as any;
 
   let service: PaymentService;
 
