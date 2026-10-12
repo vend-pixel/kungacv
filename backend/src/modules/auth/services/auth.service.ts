@@ -19,8 +19,9 @@ export class AuthService {
   ) {}
 
   async signIn(loginObj: LoginUserDto, role = 'user') {
+    const email = this.userService.normalizeEmail(loginObj.email);
     const user = await this.userService.findOne({
-      email: loginObj.email,
+      email,
       role,
       active: true,
     });
@@ -53,10 +54,15 @@ export class AuthService {
   }
 
   async signUp(userObj: CreateUserDto, role = 'user') {
-    userObj.role = role;
-    userObj.password = await hash(userObj.password);
+    const password = await hash(userObj.password);
+    const payload = {
+      ...userObj,
+      role,
+      email: this.userService.normalizeEmail(userObj.email),
+      password,
+    };
 
-    const user = await this.userService.createUser(userObj);
+    const user = await this.userService.createUser(payload);
 
     const claims = {
       email: user.email,
@@ -80,7 +86,10 @@ export class AuthService {
   }
 
   async getProfile(uid: string) {
-    const user = await this.userService.findOne({ uid });
+    const query = String(uid).includes('@')
+      ? { email: this.userService.normalizeEmail(uid) }
+      : { uid };
+    const user = await this.userService.findOne(query);
 
     if (!user) {
       throw new BadRequestException({
@@ -89,6 +98,10 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async getPublicProfile(uidOrEmail: string) {
+    return this.userService.toPublicUser(await this.getProfile(uidOrEmail));
   }
 
   async updateUserProfile(payload: UpdateUserDto, user: any) {
@@ -120,7 +133,7 @@ export class AuthService {
       uid: user.uid,
     });
 
-    return updatedUser;
+    return this.userService.toPublicUser(updatedUser);
   }
 
   async deleteUserProfile(uid: string) {

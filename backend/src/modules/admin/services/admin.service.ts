@@ -15,7 +15,7 @@ export class AdminService {
       uid: userId,
     });
 
-    return updatedUser;
+    return this.userService.toPublicUser(updatedUser);
   }
 
   getParsedQuery(query: IQuery = {}) {
