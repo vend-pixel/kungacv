@@ -1,7 +1,7 @@
 import { HttpError } from "react-admin";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://kungacv-backend.onrender.com";
+  process.env.NEXT_PUBLIC_API_URL || "https://kungacv-api.onrender.com";
 
 const RESOURCE_CONFIG = {
   templates: {
