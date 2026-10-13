@@ -104,4 +104,30 @@ describe('TemplateService', () => {
       'new_public_id',
     );
   });
+
+  it('deletes the previous Cloudinary asset after replacement is persisted', async () => {
+    const template = {
+      uid: 'tpl_1',
+      version: 2,
+      previewPublicId: 'old_public_id',
+      save: jest
+        .fn()
+        .mockResolvedValue({ uid: 'tpl_1', previewPublicId: 'new_public_id' }),
+    };
+    templateModel.findOne.mockResolvedValue(template);
+    cloudinaryService.uploadPreview.mockResolvedValue({
+      secureUrl: 'https://cloudinary.example/new.webp',
+      publicId: 'new_public_id',
+    });
+    cloudinaryService.deletePreview.mockResolvedValue(undefined);
+
+    await service.uploadPreview('tpl_1', {
+      buffer: Buffer.from('x'),
+      mimetype: 'image/webp',
+      size: 1,
+    });
+    expect(cloudinaryService.deletePreview).toHaveBeenCalledWith(
+      'old_public_id',
+    );
+  });
 });
