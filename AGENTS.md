@@ -1,369 +1,203 @@
 # Agent Guide for kungacv (KungaCV)
 
-This repository is **KungaCV**, a modern resume builder built as a multi-package application with a NestJS backend, a Next.js resume-builder client, and a Next.js admin dashboard.
+KungaCV is a resume builder shipped as three independently deployed packages (no root `package.json`, no workspaces). Install deps and run scripts inside each package directory.
 
-- `/backend` — NestJS API (MongoDB, Mongoose, Passport/JWT, Swagger). Package name: `kungacv-backend`.
-- `/frontend/kungacv_client` — Resume builder (Next.js 13 App Router, Redux Toolkit + redux-persist, Tailwind CSS, react-beautiful-dnd). Package name: `kungacv_client`.
-- `/frontend/kungacv_admin` — Admin dashboard (Next.js 13 Pages Router, React Admin, MUI, Chart.js). Package name: `kungacv_admin`.
-
-The client and admin folders use the product name directly; package names, UI copy, metadata, and asset paths are all KungaCV-owned.
+- `backend/` — NestJS API. Package name `kungacv-backend`. Deployed as Render service `kungacv-api`.
+- `frontend/kungacv_client/` — resume builder, Next.js App Router + Redux Toolkit + Tailwind. Package name `kungacv_client`.
+- `frontend/kungacv_admin/` — admin dashboard, Next.js Pages Router + React Admin + MUI. Package name `kungacv_admin`.
 
 ---
 
-## Branding (KungaCV)
+## Source-of-truth files
 
-Design direction: **"Ink chrome + electric blue"** — light workspace, near-black nav/hero/footer panels, electric blue as the sole accent, white resume/ATS preview.
-
-- **Tailwind tokens** (`frontend/kungacv_client/tailwind.config.js`): `brand` scale (50–900, core `#1080F0`/`#0070F0`), `ink` scale (50–950, core `#0A0A0B`/`#111114`). The default `blue` scale is overridden by `brand` (so existing `blue-*` utilities use brand colors); `indigo` maps 600/700 to brand.
-- **Logo component**: `frontend/kungacv_client/components/Logo.jsx` — props `variant` (`light`|`dark`), `size` (`sm`|`md`|`lg`), `markOnly`. SVG mark = blue-gradient K over/behind a doc glyph; wordmark is "Kunga" + blue "CV".
-- **CSS vars** (`frontend/kungacv_client/styles/globals.css`): `--dark-color: #0a0a0b`, `--link-color: #0050e0`, `--gradient-from: #1080f0`, `--gradient-to: #0040d0`.
-- **Buttons**: solid `bg-brand-600 hover:bg-brand-700` (no gradient buttons, no glassmorphism).
-- **Template assets**: local `frontend/kungacv_client/public/templates/*.webp` files rendered from the hidden Redux preview route; no remote image domain is whitelisted.
-- **API configuration**: login, signup, and profile actions use `NEXT_PUBLIC_API_URL`, falling back to `https://kungacv-backend.onrender.com`; `MONGO_DB_NAME=kungacv`.
-- **Semantic colors**: reds remain reserved for destructive actions (logout/delete).
+- CI gates and exact command order: `.github/workflows/ci.yml`
+- Local multi-package orchestrator: `start.sh`
+- Deploy topology + env wiring: `render.yaml`
+- Backend env validation (what actually blocks boot): `backend/config/app.config.ts`
+- Branch model + PR checklist: `docs/DEVELOPMENT.md`; dep security plan: `SECURITY.md`
 
 ---
 
-## Repository Layout
+## Commands
 
-```
-kungacv/
-├── backend/                 # NestJS application
-│   ├── config/app.config.ts # env → config mapping
-│   ├── src/
-│   │   ├── app.module.ts
-│   │   ├── main.ts          # entry point, enables CORS, ValidationPipe
-│   │   ├── modules/         # user, auth, admin, purchase, subscription, payment, resume
-│   │   └── shared/          # guards, helpers, interfaces, DTOs, constants
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
-│   ├── kungacv_client/      # public-facing resume builder
-│   │   ├── app/             # Next.js 13 App Router routes
-│   │   ├── components/
-│   │   ├── redux/           # store, slices, helpers
-│   │   ├── utils/           # helpers, constants
-│   │   └── styles/
-│   └── kungacv_admin/        # admin dashboard
-│       ├── pages/           # Next.js 13 Pages Router
-│       ├── src/
-│       └── components/
-└── README.md
-```
+`./start.sh` runs all three packages: `install | build | test | lint | run (alias dev) | all | status | logs [svc] | stop [svc] | clean`. It pins ports itself (backend 3000, client 3001, **admin 3002**) and writes pid/logs under `.run/` and `.logs/`.
 
----
-
-## Essential Commands
-
-There is **no root package.json or workspace configuration**. Run commands from each package directory.
-
-### Backend (`backend/`)
+CI (`.github/workflows/ci.yml`) is the gate; run it locally before opening a PR:
 
 ```bash
 cd backend
-npm install
-npm run start:dev     # development watch mode (NestJS)
-npm run build         # production build to dist/
-npm run start:prod    # run dist/main.js
-npm run start         # non-watch dev start
-npm run test          # Jest unit tests
-npm run lint          # ESLint with auto-fix
-npm run lint:check    # CI-safe ESLint check
-npm run typecheck     # TypeScript check without emitting files
+npm run lint:check && npm run typecheck && npm test -- --runInBand --coverage && npm run build
+
+cd frontend/kungacv_client && npm run lint && npm run build
+cd frontend/kungacv_admin  && npm run lint && npm run build
 ```
 
-- Server starts on **port 3000** by default and honors Render's injected `PORT` in deployment.
-- Requires Node.js **>= 19**.
+Package notes:
 
-### Resume Client (`frontend/kungacv_client/`)
-
-```bash
-cd frontend/kungacv_client
-npm install
-npm run dev           # Next.js dev server on port 3001
-npm run build         # production build
-npm run start         # production server
-npm run lint          # next lint
-```
-
-### Admin Client (`frontend/kungacv_admin/`)
-
-```bash
-cd frontend/kungacv_admin
-npm install
-npm run dev           # Next.js dev server (default port 3000)
-npm run build
-npm run start
-npm run lint
-```
+- Backend: `start:dev` (watch), `start:prod` (`node dist/src/main`), `test:e2e`, `load:test` (needs `ts-node`). CI is Node 20; `package.json` requires `>=19`.
+- Client: `dev` is pinned to port 3001 (`next dev -p 3001`); admin has no port pinned, so plain `npm run dev` collides with the backend on 3000 — use `./start.sh run` or pass `-p`.
+- Client has an extra `npm run smoke` → `scripts/production-smoke.mjs`.
+- ESLint is skipped during Next builds for both clients (`ignoreDuringBuilds`), so `npm run lint` is the only lint gate for them.
 
 ---
 
-## Environment Variables
+## Backend
 
-Backend (`backend/.env` — not committed, must be created):
+### Boot sequence (`backend/src/main.ts`)
 
-```bash
-NODE_ENV=development
-SERVER_HOST=0.0.0.0
-SERVER_PORT=3000
-PORT=3000
-MONGO_URI=mongodb://...
-MONGO_DB_NAME=kungacv
-MONGO_AUTH_SOURCE=admin
-MONGO_USERNAME=
-MONGO_PASSWORD=
-JWT_SECRET=your_secret_key
-PAYCHANGU_SECRET_KEY=sk_live_...
-PAYCHANGU_WEBHOOK_SECRET=whsec_...
-PAYCHANGU_PRO_PRICE_MWK=5000
-PAYCHANGU_PRO_PASS_DAYS=30
-```
+`bodyParser: false` then a custom `json({ limit: '256kb', verify })` that stashes **`req.rawBody`**. The PayChangu webhook verifies an HMAC-SHA256 `Signature` header against that raw body — do not replace the custom parser with a default one or webhook verification breaks.
 
-PayChangu keys are required only for the Pro checkout flow; the app boots without them (checkout endpoint returns a clear error). `PAYCHANGU_PRO_PRICE_MWK` is a placeholder (5,000 MWK one-time 30-day Pro pass) pending launch pricing.
+Also set up at boot: `trust proxy = 1`; an `X-Request-Id` middleware (echoes a validated inbound id or generates a UUID); `helmet` with CSP disabled; a global `HttpExceptionFilter`.
 
-Login, signup, payments, and resume persistence use `utils/api.js`, which reads `NEXT_PUBLIC_API_URL` and falls back to the hosted API URL.
+### CORS is an allowlist, not `cors: true`
 
-Client env vars (`frontend/kungacv_client/.env.local`, see `.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GTM_ID` (Google Tag Manager container id — GTM snippet and all dataLayer events are disabled when unset), `NEXT_PUBLIC_PRO_PRICE_MWK`, `NEXT_PUBLIC_PRO_PASS_DAYS`.
+Allowed origins = `CLIENT_URL` + comma-separated `CORS_ORIGINS`. In non-production only, `http://localhost:3000/3001/3002` are appended. Allowed headers include `Authorization`, `Signature`, `X-Admin-Signup-Token`; exposed headers include `X-Request-Id`, `X-RateLimit-Reset`, `Retry-After`.
 
----
+### Validation is strict
 
-## Backend Architecture
+Global `ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true })`. Unknown body fields are rejected with a 400, not stripped — adding a DTO field is required for any new input to be accepted.
 
-### Framework & Entry Point
+### Auth
 
-- `backend/src/main.ts` bootstraps the NestJS app:
-  - Enables CORS globally (`cors: true`).
-  - Applies `ValidationPipe` with `whitelist: true`.
-  - Listens on `PORT` when provided by Render, otherwise port 3000.
+There is **no Passport strategy implementation**. `PassportModule.register({ defaultStrategy: 'jwt' })` is imported in several modules, but no `JwtStrategy`/`PassportStrategy` file exists; all verification happens in the custom `AuthGuard` (`backend/src/shared/guards/auth.guard.ts`), which reads the secret from `configService.get('jsonwebtoken.jwt_secret')` (i.e. `JWT_SECRET`). Tokens are signed by `JwtModule.registerAsync` with `expiresIn: '30d'`. Roles are `admin` | `user`; admin controllers check `req.user.role !== 'admin'` inline.
 
-### Operations
+`/admin/signup` is gated by an `X-Admin-Signup-Token` header that must match the `ADMIN_SIGNUP_TOKEN` env var; with the var unset it returns "admin signup is disabled".
 
-- [System architecture](docs/ARCHITECTURE.md)
-- [Development and release workflow](docs/DEVELOPMENT.md)
-- [Render deployment runbook](docs/DEPLOYMENT.md)
+### Rate limiting
 
-### Modules
+`@RateLimit({ name, limit, windowMs })` (`shared/guards/rate-limit.decorator.ts`) applied to `auth-signup` 5/min, `auth-login` 10/min, `admin-signup` 5/min, `admin-login` 10/min, `payment-initiate` 10/min, `payment-webhook` 120/min. New sensitive endpoints should carry it.
 
-| Module | Purpose |
-|--------|---------|
-| `AuthModule` | `/auth/signup`, `/auth/login`, `/auth/profile`, `/auth/update`, `/auth/delete` |
-| `UserModule` | User schema/service (no exposed controller beyond auth/admin) |
-| `AdminModule` | `/admin/signup`, `/admin/login`, `/admin/create-user`, `/admin/get-users` |
-| `PurchaseModule` | `/purchases/` CRUD for transactions |
-| `SubscriptionModule` | `/subscription/` CRUD for subscription plans |
-| `PaymentModule` | `/payments/initiate`, `/payments/verify`, `/payments/webhook`, `/payments/plans` (PayChangu) |
-| `ResumeModule` | `/resumes/` CRUD + duplicate; server-side CV persistence (JWT required) |
+### Env validation (`backend/config/app.config.ts`)
 
-### Authentication
+`validateEnvironment` refuses to boot if any of `MONGO_URI` (or `MONGODB_URI`), `MONGO_DB_NAME`, `JWT_SECRET` is missing. In `NODE_ENV=production` it also rejects a JWT secret that equals `PLACEHOLDER_JWT_SECRET` (`your_secret_key_change_me`) or is shorter than 32 chars.
 
-- Passport + JWT strategy; tokens signed with `JWT_SECRET` and expire in **30 days**.
-- `AuthGuard` (`backend/src/shared/guards/auth.guard.ts`) verifies the `Authorization: Bearer <token>` header.
-- Roles are `admin` or `user`. Many admin routes check `req.user.role !== 'admin'`.
-- Note: the `JwtStrategy` file contains a placeholder secret (`'your_secret_key'`), but the runtime guard reads from the env config. Keep the env secret in sync if using strategy-based validation.
+`@nestjs/config` uses its default `envFilePath` — **only `.env` is loaded**. The repo also contains `backend/.env.local`, which the backend never reads; do not put backend config there. Copy `.env.example` to `.env` to get started.
 
-### Data Layer
+Other config keys: `paychangu.*` (`PAYCHANGU_SECRET_KEY`, `PAYCHANGU_WEBHOOK_SECRET` — falls back to the secret key, `PAYCHANGU_PRO_PRICE_MWK`, `PAYCHANGU_PRO_PASS_DAYS`), `cloudinary.*`, `client_url`, `cors_extra_origins`, `admin_signup_token`. PayChangu keys are only needed for checkout; the app boots without them.
 
-- **MongoDB** with **Mongoose**.
-- Schemas: `User`, `Purchase`, `Subscription`, `Resume` (CV content stored as Mixed JSON).
-- `UserService.createUser` assigns a `uid` via `nanoid()`.
-- Soft-delete pattern: `active`, `deleted_at`, `deleted_by`.
+### Routes
 
-### Query Pattern
+| Prefix | Notes |
+|--------|-------|
+| `/health`, `/health/live`, `/health/ready` | `ready` returns 503 unless Mongo `readyState === connected` |
+| `/auth/*` | signup, login, profile, update, delete |
+| `/admin/*` | login, signup (token-gated), create-user, get-users, update-user, delete-user |
+| `/resumes/*` | CRUD + `/:resumeUid/duplicate`, JWT required |
+| `/templates` | public: list, `slug/:slug`, `:uid` |
+| `/admin/templates` | CRUD + `:uid/preview` (multipart image → Cloudinary), publish, disable, restore |
+| `/subscription` | create/patch/delete JWT-gated; GET open |
+| `/admin/pricing` | CRUD + activate/disable |
+| `/purchases/*` | JWT-gated CRUD |
+| `/payments` | `/plans` open; `/initiate` and `/:tx_ref/status` JWT-gated; `/webhook` signature-verified |
+| `/admin/payments` | list + `:txRef` |
+| `/user` | schema/service only; no public controller |
 
-- Controllers parse incoming query strings, then call `service.getParsedQuery(query)` to normalize them.
-- Reusable aggregation helpers live in `backend/src/shared/helpers/aggregations.ts` (filter by `uid`, `email`, `name`, `active`, `user_uid`, `price`, etc.).
-- Responses wrap data in objects like `{ users: ... }`, `{ purchases: ... }`.
+Response envelopes are inconsistent by design: `{ resumes }`, `{ templates }`, `{ users }`, `{ purchases }`, `{ subscriptions }`. Clients unwrap per endpoint (`utils/api.js` uses `.then(d => d.resume)` etc.).
 
-### DTOs & Validation
+`@nestjs/swagger` is a dependency and `@ApiProperty` decorators exist in `shared/dto/user.dto.ts`, but `SwaggerModule` is never mounted in `main.ts` — there is no `/api` docs endpoint.
 
-- DTOs in `backend/src/shared/dto/user.dto.ts` and per-module `dto/index.ts`.
-- Uses `class-validator` + `class-transformer`; `UpdateUserDto` extends `PartialType(CreateUserDto)`.
-- Swagger annotations (`@ApiProperty`) are present.
+### Data layer
+
+Mongoose. Schemas: `User`, `Purchase`, `Subscription`, `Resume` (CV content as Mixed JSON), `Template`, `Payment`. `UserService.createUser` assigns a `uid` via `nanoid()`. Soft-delete convention: `active`, `deleted_at`, `deleted_by`. `database-indexes.spec.ts` asserts the index set — changing a schema index can fail tests.
+
+Controllers parse query strings and delegate to `service.getParsedQuery(query)`; reusable aggregation helpers are in `shared/helpers/aggregations.ts`.
 
 ---
 
-## Client Architecture (`kungacv_client`)
+## Client (`kungacv_client`)
 
-### Routing
+### API base
 
-- Uses the **App Router** (`app/` directory).
-- Key routes:
-  - `/` — landing page
-  - `/resume` — resume dashboard
-  - `/resume/create` — resume editor
-  - `/login`, `/signup`
+`utils/api.js` exports `API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-backend.onrender.com"` plus `apiFetch` and resume CRUD helpers. `app/login`, `app/signup`, and the admin `dataProvider` all import from there — there are no scattered hardcoded URLs.
 
-### State Management
+⚠️ The fallback host `kungacv-backend.onrender.com` currently returns 404 (dead); `render.yaml` sets `NEXT_PUBLIC_API_URL=https://kungacv-api.onrender.com`. Set the env var explicitly for any local or deployed work.
 
-- **Redux Toolkit** + **redux-persist** (localStorage).
-- Slices:
-  - `auth` — current user and `access_token`
-  - `resume` — full resume data and customization settings
-- Store shape: `state.persistedReducer.auth` / `state.persistedReducer.resume`.
-- Use the provided hooks: `useAppSelector` and `useAppDispatch` from `redux/hooks.js`.
+Pricing display falls back to `NEXT_PUBLIC_PRO_PRICE_MWK` / `NEXT_PUBLIC_PRO_PASS_DAYS` (defaults 5000 / 30) but prefers the live `/payments/plans` response.
 
-### Resume Data Model
+### Analytics
 
-Resume state lives in `redux/resume/features.js` and `redux/resume/helper.js`.
+`utils/analytics.js` reads `NEXT_PUBLIC_GTM_ID`; `components/Analytics.jsx` renders nothing and `trackEvent` is a no-op when it is unset. Keep that behavior when touching either file.
+
+### Redux
+
+`redux/store.js` persists under `state.persistedReducer.{auth,resume}` (localStorage). Use `useAppSelector`/`useAppDispatch` from `redux/hooks.js`.
+
+Resume state lives in `redux/resume/features.js` + `redux/resume/helper.js`:
 
 - `personalInfo`: fullName, jobTitle, email, phone, address, links, image.
-- Sections: `professionalExperience`, `education`, `courses`, `skills`, `languages`, `projects`, `certificates`, `interests`.
-- `customization`: spacing, layout, colors, font, heading, header, name, job, photo, footer, date, skills/language/interest/certificate/education/professionalExperience display settings.
-- `editObj` / `prevObj`: used for add/edit rollback patterns. Almost every edit component follows this:
-  1. Sets `editObj` for the in-progress record.
-  2. On **Save**, dispatches `resetEditObj` / `resetPrevObj`.
-  3. On **Cancel**, either removes the new record or reverts to `prevObj`.
+- Sections: `professionalExperience`, `education`, `courses`, `skills`, `languages`, `projects`, `certificates`, `interests` (+ `references`).
+- `customization`: spacing, layout, colors, font, heading, header, name, job, photo, footer, date, and per-section display settings.
 
-### Null Sentinel
+**Edit/rollback pattern** — nearly every editor component sets `editObj` for the in-progress record; Save dispatches `resetEditObj`/`resetPrevObj`; Cancel removes the new record or reverts to `prevObj`. Restructuring the reducer without preserving this breaks cancel/undo across the editor.
 
-- `NULL_VALUE = "NULL_VALUE"` in `utils/Constants.js` is used to explicitly clear a field when an empty value is intended, because an empty string would otherwise be treated as falsy in the merge helpers.
-- Helper `_getValue` returns `obj1[key] === NULL_VALUE ? null : obj1[key] || obj2[key] || null`.
+**`NULL_VALUE` sentinel** (`utils/Constants.js`) means "explicitly empty". `_getValue(obj1, obj2, key)` lives in `utils/helpers.js` and returns `obj1[key] === NULL_VALUE ? null : obj1[key] || obj2[key] || null` — so an empty string alone will *not* clear a field. It also short-circuits for `TEMPLATE_BOOLEAN_KEYS` and integer values, so booleans/numbers bypass the fallback chain. Use `NULL_VALUE` when clearing.
 
-### Path Aliases
+### Routes
 
-Defined in `frontend/kungacv_client/jsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "paths": {
-      "@*": ["./*"]
-    }
-  }
-}
-```
-
-Common aliases used in code:
-
-- `@components/...`
-- `@redux/...`
-- `@utils/...`
-- `@styles/...`
-
-Import style is mixed — some use the alias, some use relative imports. Prefer aliases when adding new code.
+`/`, `/resume`, `/resume/create` (the editor), `/login`, `/signup`, `/pricing`, `/payment/result`, `/privacy-policy`, `/refund-policy`, `/terms-of-service`, `/dev-templates` (returns `notFound()` when `NODE_ENV === 'production'`).
 
 ### Styling
 
-- **Tailwind CSS** with a custom theme.
-- Global styles in `styles/globals.css` (imports many Google Fonts, CSS variables, utility classes).
-- `next.config.js` whitelists `local public/templates/*.webp assets` for `next/image`.
-- ESLint is configured to `ignoreDuringBuilds: true` in `next.config.js`.
+Tailwind with a custom theme. `tailwind.config.js` defines a `brand` scale (electric blue) and an `ink` scale, then **remaps the default `blue` scale onto `brand`** and points `indigo` 600/700 at brand — so existing `blue-*` utilities are already KungaCV-branded. New color usage should use `brand-*`/`ink-*` directly.
 
-### Component Organization
+CSS vars in `styles/globals.css`: `--dark-color: #0a0a0b`, `--link-color: #0050e0`, `--gradient-from: #1080f0`, `--gradient-to: #0040d0`. Buttons are solid `bg-brand-600 hover:bg-brand-700` (no gradient buttons, no glassmorphism); reds stay reserved for destructive actions.
 
-| Directory | Purpose |
-|-----------|---------|
-| `components/LandingPage/` | Landing page sections |
-| `components/ResumeComponents/` | Editor forms for resume sections |
-| `components/ResumeTemplate/` | Render-only components used by the resume preview |
-| `components/customization/` | Customization UI (colors, fonts, layout, spacing, etc.) |
-| `components/UserProfile/` | User profile/sidebar |
+`components/Logo.jsx` takes `variant` (`light`|`dark`), `size` (`sm`|`md`|`lg`), `markOnly`. Template thumbnails are local `public/templates/*.webp`; `next.config.js` has `images: {}` (no remote domain is whitelisted).
 
-### Key Libraries
+### Path alias
 
-- `@reduxjs/toolkit`, `react-redux`, `redux-persist`
-- `lodash` (used for deep clones in reducers)
-- `react-beautiful-dnd` (section reordering in customization)
-- `react-icons`
-- `tailwindcss`
+`jsconfig.json` maps `"@*": ["./*"]`, so `@components/...`, `@redux/...`, `@utils/...`, `@styles/...` all work. Imports are mixed with relative paths; prefer the alias for new code.
 
-### Adding a New Resume Section
+### Adding a resume section
 
-1. Add a new form component under `components/ResumeComponents/`.
-2. Add the corresponding template/preview component under `components/ResumeTemplate/`.
-3. Add the reducer actions in `redux/resume/features.js`.
-4. Add a helper in `redux/resume/helper.js` to normalize the data shape.
-5. Add constants to `utils/Constants.js` (icons, IDs, etc.).
-6. Register the section in `app/resume/create/page.jsx` and the dropdown/add-content list.
+1. Form component in `components/ResumeComponents/`.
+2. Preview component in `components/ResumeTemplate/`.
+3. Reducer actions in `redux/resume/features.js`.
+4. Normalizing helper in `redux/resume/helper.js`.
+5. Constants (icons, ids) in `utils/Constants.js`.
+6. Register in `app/resume/create/page.jsx` (456 lines — it wires `AddContent`, section components, and `templatePresets`) and in the add-content list.
 
 ---
 
-## Admin Architecture (`kungacv_admin`)
+## Admin (`kungacv_admin`)
 
-- Uses **Pages Router** (`pages/` directory).
-- `pages/index.tsx` dynamically imports `src/App.tsx` with `ssr: false` because React Admin requires the browser.
-- `src/App.tsx` wires up `react-admin` with `Admin`, `Resource`, `Dashboard`, custom `Layout`, and a placeholder `authProvider`.
-- Data provider is currently pointed at `jsonplaceholder.typicode.com` for demo purposes (`ra-data-json-server`).
-- Charts built with `chart.js` + `react-chartjs-2`.
+`pages/index.tsx` dynamically imports `src/App.tsx` with `ssr: false`. Resources registered: `templates`, `users`, `pricing`, `payments`.
+
+`src/dataProvider.js` talks to the **real backend** (`NEXT_PUBLIC_API_URL`, same fallback as the client) via a `RESOURCE_CONFIG` map — `templates` → `admin/templates`, `pricing` → `admin/pricing`, `payments` → `admin/payments`, `users` → `admin/get-users` — plus per-resource `LIST_FILTERS`. `src/AuthProvider.js` posts to `/admin/login`, requires `body.user.role === "admin"`, and stores `admin_access_token` / `admin_user` in localStorage. Extending an admin resource means editing both maps, not just adding a `<Resource>`.
+
+⚠️ `frontend/kungacv_admin/components/Posts/` and `components/User/` are leftovers from the pre-backend scaffold and are not imported by `src/App.tsx`.
+
+Charts: `chart.js` + `react-chartjs-2`.
 
 ---
 
-## Code Style & Conventions
+## Conventions
 
-### Backend
+Backend: imports grouped under `// THIRD PARTY IMPORTS` / `// INNER IMPORTS` (note the order varies by file); DTOs are decorated classes with `UpdateXxxDto extends PartialType(CreateXxxDto)`; soft deletes use `active`/`deleted_at`/`deleted_by`.
 
-- Imports grouped with comments:
-  - `// THIRD PARTY IMPORTS`
-  - `// INNER IMPORTS`
-- Classes/Controllers/Services are PascalCase; methods are camelCase.
-- DTOs are classes with decorators.
-- Soft deletes use `active`, `deleted_at`, `deleted_by`.
+Client/admin: default-exported components, no TypeScript in the client (admin uses `.tsx`/`.ts` with strict mode), heavy inline Tailwind. Redux actions follow `add<Section>` / `update<Section>` / `remove<Section>` / `setEditObj` / `setPrevObj` / `resetEditObj` / `resetPrevObj`.
 
-### Frontend
-
-- React components are default-exported and often use the same filename as the component.
-- Mixed `.jsx` and `.js` files; the project is not TypeScript (admin package uses `.tsx`/`.ts`).
-- Tailwind classes are heavily inline; custom CSS is in `globals.css` for variables and component-like classes.
-- Redux actions are named like `add<Section>`, `update<Section>`, `remove<Section>`, `setEditObj`, `setPrevObj`, `resetEditObj`, `resetPrevObj`.
+Formatting: backend Prettier `singleQuote: true`, `trailingComma: "all"`; client Prettier `tabWidth: 4`, `singleQuote: false`, `printWidth: 150`, `trailingComma: "es5"`.
 
 ---
 
 ## Testing
 
-- Backend has Jest configured in `package.json`.
-- Frontend has no test setup currently.
-
-Run backend tests with:
-
-```bash
-cd backend
-npm run test
-```
+Backend only — Jest with coverage, ~22 spec files including guards, DTOs, payment signature validation, template schema, and health. Frontends have no test setup; client changes need manual verification in `/resume/create`.
 
 ---
 
-## Linting & Formatting
+## Gotchas
 
-### Backend
-
-- ESLint: `backend/.eslintrc.js` — TypeScript recommended + Prettier.
-- Prettier: `backend/.prettierrc` — `singleQuote: true`, `trailingComma: "all"`.
-
-### Client
-
-- ESLint: `frontend/kungacv_client/.eslintrc.json` extends `next/core-web-vitals`.
-- Prettier: `frontend/kungacv_client/.prettierrc.json` — `tabWidth: 4`, `singleQuote: false`, `printWidth: 150`, `trailingComma: "es5"`.
-
-### Admin
-
-- ESLint: `frontend/kungacv_admin/.eslintrc.json` extends `next/core-web-vitals`.
-- TypeScript strict mode is enabled in `tsconfig.json`.
-
----
-
-## Important Gotchas
-
-1. **No root workspace or monorepo tooling.** Install dependencies and run scripts inside each package directory.
-2. **Port collisions.** The backend defaults to 3000; `kungacv_client` dev server runs on 3001; `kungacv_admin` dev server runs on 3000. Do not run backend and admin dev servers at the same time without changing one port.
-3. **Hardcoded API URL.** Login/signup forms call `https://kungacv-backend.onrender.com`. Local backend testing requires editing those files.
-4. **JWT secret mismatch.** `backend/src/modules/auth/strategies/jwt.strategy.ts` has a hardcoded secret. The app mostly uses the custom `AuthGuard` (which reads from env), but if Passport strategy validation is used, secrets must match.
-5. **ESLint disabled during client builds.** `next.config.js` has `eslint: { ignoreDuringBuilds: true }`.
-6. **Mongoose deprecation warnings.** The code sets `useNewUrlParser` and `useUnifiedTopology`; these may produce deprecation warnings on newer Mongoose versions.
-7. **Edit/rollback pattern.** Resume sections rely on `editObj` and `prevObj` for cancel/undo behavior. Modifying the reducer structure without updating this pattern will break the editor cancel flow.
-8. **NULL_VALUE sentinel.** Be careful using empty strings for cleared fields; the merge helpers expect `NULL_VALUE` to mean "explicitly empty."
-9. **No tests for clients.** Changes to resume components should be manually tested in `/resume/create`.
-10. **Admin data provider is mocked.** It currently reads from `jsonplaceholder.typicode.com`, not the local backend.
-
----
-
-## Useful Files for Quick Reference
-
-- Backend entry: `backend/src/main.ts`
-- Backend auth guard: `backend/src/shared/guards/auth.guard.ts`
-- Backend config: `backend/config/app.config.ts`
-- Client layout/root: `frontend/kungacv_client/app/layout.jsx`
-- Client redux store: `frontend/kungacv_client/redux/store.js`
-- Resume editor page: `frontend/kungacv_client/app/resume/create/page.jsx`
-- Resume constants: `frontend/kungacv_client/utils/Constants.js`
-- Admin entry: `frontend/kungacv_admin/src/App.tsx`
+1. **Three separate installs.** No workspace tooling; every command is scoped to a package dir.
+2. **Port 3000 is contested.** Backend and admin both default to 3000. `./start.sh` resolves this by pinning admin to 3002; a bare `npm run dev` in admin will not.
+3. **Set `NEXT_PUBLIC_API_URL`.** Both frontends fall back to a host that currently 404s; `render.yaml` uses `kungacv-api.onrender.com`.
+4. **Backend ignores `.env.local`.** Only `.env` is loaded.
+5. **No Passport strategy exists** despite the `PassportModule` imports and `passport-jwt` dependency. `AuthGuard` is the only verification path.
+6. **`forbidNonWhitelisted: true`.** New request fields require a DTO change or they 400.
+7. **`req.rawBody` must survive** for PayChangu webhook signature checks.
+8. **`editObj`/`prevObj` + `NULL_VALUE`.** See the client Redux section; breaking either silently breaks clearing fields and editor cancel.
+9. **`database-indexes.spec.ts`** will fail if schema indexes drift.
+10. **Client ESLint runs only via `npm run lint`**, never during `next build`.
+11. **Production JWT secret is enforced at boot** — placeholder or <32 chars aborts startup with `Missing required environment variables`-style errors in Render logs.
+12. **`npm audit fix --force` is off-limits** across framework majors; follow `SECURITY.md`.
