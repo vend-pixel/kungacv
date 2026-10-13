@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Admin, EditGuesser, ListGuesser, Resource } from "react-admin";
+import { Admin, Resource } from "react-admin";
 import { authProvider } from "./AuthProvider";
 import dataProvider from "./dataProvider";
 import { Login, Layout } from "./layout";
@@ -9,7 +9,18 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import PaymentIcon from "@mui/icons-material/Payment";
-import { UserList } from "../components/User/ListUser";
+import {
+  PricingCreate,
+  PricingEdit,
+  PricingList,
+} from "./resources/Pricing";
+import {
+  TemplateCreate,
+  TemplateEdit,
+  TemplateList,
+} from "./resources/Templates";
+import { PaymentList, PaymentShow } from "./resources/Payments";
+import { UserCreate, UserEdit, UserList } from "./resources/Users";
 
 const App = () => (
   <Admin
@@ -23,18 +34,31 @@ const App = () => (
   >
     <Resource
       name="templates"
-      list={ListGuesser}
-      edit={EditGuesser}
+      list={TemplateList}
+      create={TemplateCreate}
+      edit={TemplateEdit}
       icon={ContentPasteIcon}
     />
     <Resource
       name="users"
       list={UserList}
+      create={UserCreate}
+      edit={UserEdit}
       icon={PeopleAltIcon}
-      edit={EditGuesser}
     />
-    <Resource name="pricing" list={ListGuesser} icon={PaidIcon} />
-    <Resource name="payments" list={ListGuesser} icon={PaymentIcon} />
+    <Resource
+      name="pricing"
+      list={PricingList}
+      create={PricingCreate}
+      edit={PricingEdit}
+      icon={PaidIcon}
+    />
+    <Resource
+      name="payments"
+      list={PaymentList}
+      show={PaymentShow}
+      icon={PaymentIcon}
+    />
   </Admin>
 );
 
