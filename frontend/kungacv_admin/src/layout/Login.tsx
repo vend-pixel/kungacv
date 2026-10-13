@@ -98,8 +98,10 @@ const Login = () => {
             <Box sx={{ marginTop: "1em" }}>
               <TextInput
                 autoFocus
-                source="username"
-                label={translate("ra.auth.username")}
+                source="email"
+                label="Email"
+                type="email"
+                autoComplete="email"
                 disabled={loading}
                 validate={required()}
                 fullWidth
@@ -142,6 +144,6 @@ Login.propTypes = {
 export default Login;
 
 interface FormValues {
-  username?: string;
+  email?: string;
   password?: string;
 }

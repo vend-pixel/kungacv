@@ -4,11 +4,11 @@ const TOKEN_KEY = "admin_access_token";
 const USER_KEY = "admin_user";
 
 export const authProvider = {
-  async login({ username, password }) {
+  async login({ email, password }) {
     const response = await fetch(`${API_BASE}/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: username, password }),
+      body: JSON.stringify({ email, password }),
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok || !body.access_token || body.user?.role !== "admin") {
