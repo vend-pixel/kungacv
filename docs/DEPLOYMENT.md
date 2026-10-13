@@ -44,6 +44,30 @@ Use a separate Mongo database, JWT secret, and PayChangu test credentials for st
 
 Template preview uploads use Cloudinary. Enter `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` as encrypted Render environment variables for each API service. The API stores only the returned secure URL and public ID in MongoDB; Cloudinary secrets never reach the browser. Preview uploads are limited to 5 MB and JPEG, PNG, or WebP images. Use separate Cloudinary folders or credentials for staging and production when practical.
 
+### Configure Cloudinary for the production API
+
+1. In Cloudinary, open the production account dashboard and copy the **Cloud name**, **API Key**, and **API Secret**. Never put the API Secret in frontend variables or GitHub.
+2. In Render, open the `kungacv-api` service, then open **Environment**.
+3. Add or update these values:
+
+   ```text
+   CLOUDINARY_CLOUD_NAME=<Cloudinary cloud name>
+   CLOUDINARY_API_KEY=<Cloudinary API key>
+   CLOUDINARY_API_SECRET=<Cloudinary API secret>
+   CLOUDINARY_FOLDER=kungacv/templates
+   ```
+
+4. Save the environment changes and deploy the API. Do the same for `kungacv-api-staging` with a staging Cloudinary account or folder if available.
+5. Verify the API health endpoint, then use the protected admin upload route with a JPEG, PNG, or WebP preview no larger than 5 MB:
+
+   ```text
+   POST /admin/templates/:uid/preview
+   multipart field: file
+   Authorization: Bearer <admin JWT>
+   ```
+
+6. Confirm the template record stores a Cloudinary `previewUrl` and `previewPublicId`. Do not expect the Cloudinary secret or signed upload data in any API response.
+
 If Render logs `Missing required environment variables: MONGO_URI, JWT_SECRET`, the service is failing before Nest starts. In the Render dashboard, open both `kungacv-api` and `kungacv-api-staging`, add the missing values under **Environment**, save, and redeploy. The `sync: false` entries in `render.yaml` declare secrets but intentionally do not provide their values. Confirm the next deploy logs `server_started` and that `/health/ready` returns HTTP 200.
 
 For MongoDB Atlas, set `MONGODB_URI` or `MONGO_URI` to the complete driver URI, including any `?appName=...` query. Set `MONGO_DB_NAME=kungacv`. The API inserts the database name before query parameters, so the Atlas-generated URI format is supported. Do not leave `<db_password>` as a literal placeholder; use the actual database-user password, URL-encoding reserved characters when necessary. Atlas Network Access must also allow Render’s outbound connection.
