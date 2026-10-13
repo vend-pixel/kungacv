@@ -10,6 +10,9 @@ export class Subscription extends Document {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ unique: true, sparse: true, lowercase: true, trim: true })
+  slug: string;
+
   @Prop({ default: null })
   description: string;
 
@@ -18,6 +21,12 @@ export class Subscription extends Document {
 
   @Prop({ default: 0 })
   price: number;
+
+  @Prop({ default: 'MWK' })
+  currency: string;
+
+  @Prop({ default: 0, min: 0 })
+  sortOrder: number;
 
   @Prop({ required: true, default: true })
   active: boolean;
@@ -35,3 +44,5 @@ export class Subscription extends Document {
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);
 SubscriptionSchema.index({ active: 1, name: 1 });
 SubscriptionSchema.index({ active: 1, price: 1 });
+SubscriptionSchema.index({ active: 1, sortOrder: 1, price: 1 });
+SubscriptionSchema.index({ deleted_at: 1 });

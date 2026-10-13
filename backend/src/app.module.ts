@@ -18,6 +18,8 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { ResumeModule } from './modules/resume/resume.module';
 import { HealthController } from './health.controller';
 import { RateLimitGuard } from './shared/guards/rate-limit.guard';
+import { MediaModule } from './modules/media/media.module';
+import { TemplateModule } from './modules/template/template.module';
 
 @Module({
   controllers: [HealthController],
@@ -56,6 +58,8 @@ import { RateLimitGuard } from './shared/guards/rate-limit.guard';
     PurchaseModule,
     PaymentModule,
     ResumeModule,
+    MediaModule,
+    TemplateModule,
   ],
 })
 export class AppModule {}

@@ -3,6 +3,7 @@ import { ResumeSchema } from './modules/resume/schema/resume.schema';
 import { PaymentSchema } from './modules/payment/schema/payment.schema';
 import { PurchaseSchema } from './modules/purchase/schema/purchase.schema';
 import { SubscriptionSchema } from './modules/subscription/schemas/subscriptions.schema';
+import { TemplateSchema } from './modules/template/schemas/template.schema';
 
 const hasIndex = (schema: any, fields: Record<string, number>) =>
   schema
@@ -36,5 +37,23 @@ describe('production database indexes', () => {
   it('indexes subscription list filters', () => {
     expect(hasIndex(SubscriptionSchema, { active: 1, name: 1 })).toBe(true);
     expect(hasIndex(SubscriptionSchema, { active: 1, price: 1 })).toBe(true);
+    expect(hasIndex(SubscriptionSchema, { active: 1, sortOrder: 1 })).toBe(
+      true,
+    );
+  });
+
+  it('indexes template publication and entitlement queries', () => {
+    expect(
+      hasIndex(TemplateSchema, { active: 1, published: 1, sortOrder: 1 }),
+    ).toBe(true);
+    expect(
+      hasIndex(TemplateSchema, {
+        access: 1,
+        active: 1,
+        published: 1,
+        sortOrder: 1,
+      }),
+    ).toBe(true);
+    expect(hasIndex(TemplateSchema, { packageUids: 1, active: 1 })).toBe(true);
   });
 });
