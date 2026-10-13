@@ -18,7 +18,9 @@ export function validateEnvironment(env: Record<string, unknown>) {
     .filter(([, value]) => !String(value || '').trim())
     .map(([key]) => key);
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`,
+    );
   }
 
   const nodeEnv = String(env.NODE_ENV || 'development');
@@ -55,6 +57,12 @@ export default () => ({
       process.env.PAYCHANGU_WEBHOOK_SECRET || process.env.PAYCHANGU_SECRET_KEY,
     pro_price_mwk: Number(process.env.PAYCHANGU_PRO_PRICE_MWK) || 5000,
     pro_pass_days: Number(process.env.PAYCHANGU_PRO_PASS_DAYS) || 30,
+  },
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    folder: process.env.CLOUDINARY_FOLDER || 'kungacv/templates',
   },
   client_url: process.env.CLIENT_URL || 'http://localhost:3001',
   cors_extra_origins: process.env.CORS_ORIGINS || '',

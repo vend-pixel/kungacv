@@ -4,11 +4,11 @@
 
 The repository defines six Render web services in [`render.yaml`](../render.yaml): three staging services on `develop` and three production services on `main`.
 
-| Service | Runtime | Build | Start | Health check |
-|---|---|---|---|---|
-| API | Node/NestJS | `cd backend && npm ci && npm run build` | `cd backend && npm run start:prod` | `/health/ready` |
-| Client | Node/Next.js | `cd frontend/kungacv_client && npm ci && npm run build` | `cd frontend/kungacv_client && npm start` | Render default |
-| Admin | Node/Next.js | `cd frontend/kungacv_admin && npm ci && npm run build` | `cd frontend/kungacv_admin && npm start` | Render default |
+| Service | Runtime      | Build                                                   | Start                                     | Health check    |
+| ------- | ------------ | ------------------------------------------------------- | ----------------------------------------- | --------------- |
+| API     | Node/NestJS  | `cd backend && npm ci && npm run build`                 | `cd backend && npm run start:prod`        | `/health/ready` |
+| Client  | Node/Next.js | `cd frontend/kungacv_client && npm ci && npm run build` | `cd frontend/kungacv_client && npm start` | Render default  |
+| Admin   | Node/Next.js | `cd frontend/kungacv_admin && npm ci && npm run build`  | `cd frontend/kungacv_admin && npm start`  | Render default  |
 
 The services use Frankfurt to reduce latency for Malawi and regional users. Free plans are suitable for early staging and low-volume validation, but they can suspend when idle; upgrade the API and client when uptime and cold-start behavior become product requirements.
 
@@ -24,20 +24,25 @@ The services use Frankfurt to reduce latency for Malawi and regional users. Free
 
 Non-secret defaults are defined in the Blueprint. The following values must be supplied in Render and must not be committed:
 
-| Variable | Purpose |
-|---|---|
-| `MONGO_URI` | MongoDB connection endpoint |
-| `MONGO_DB_NAME` | Database name used by the API |
-| `MONGO_AUTH_SOURCE` | MongoDB authentication source |
-| `MONGO_USERNAME` / `MONGO_PASSWORD` | Database credentials when required |
-| `JWT_SECRET` | Token signing secret; use a unique random value per environment |
-| `PAYCHANGU_SECRET_KEY` | PayChangu API credential |
-| `PAYCHANGU_WEBHOOK_SECRET` | Webhook HMAC secret |
-| `ADMIN_SIGNUP_TOKEN` | Optional protected admin signup token |
+| Variable                                       | Purpose                                                         |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| `MONGO_URI`                                    | MongoDB connection endpoint                                     |
+| `MONGO_DB_NAME`                                | Database name used by the API                                   |
+| `MONGO_AUTH_SOURCE`                            | MongoDB authentication source                                   |
+| `MONGO_USERNAME` / `MONGO_PASSWORD`            | Database credentials when required                              |
+| `JWT_SECRET`                                   | Token signing secret; use a unique random value per environment |
+| `PAYCHANGU_SECRET_KEY`                         | PayChangu API credential                                        |
+| `PAYCHANGU_WEBHOOK_SECRET`                     | Webhook HMAC secret                                             |
+| `ADMIN_SIGNUP_TOKEN`                           | Optional protected admin signup token                           |
+| `CLOUDINARY_CLOUD_NAME`                        | Cloudinary cloud identifier for template previews               |
+| `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Cloudinary server-side upload credentials                       |
+| `CLOUDINARY_FOLDER`                            | Root folder for template previews; default `kungacv/templates`  |
 
 `MONGO_URI`, `MONGO_DB_NAME`, and `JWT_SECRET` are required at startup. The API also accepts Atlas-generated aliases `MONGODB_URI`, `MONGODB_USERNAME`, and `MONGODB_PASSWORD`. In production, `JWT_SECRET` must be at least 32 characters and must not use the placeholder from `.env.example`. When MongoDB credentials are supplied, the API passes the configured authentication values to Mongoose.
 
 Use a separate Mongo database, JWT secret, and PayChangu test credentials for staging. Never copy production secrets into GitHub Actions or local issue comments.
+
+Template preview uploads use Cloudinary. Enter `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` as encrypted Render environment variables for each API service. The API stores only the returned secure URL and public ID in MongoDB; Cloudinary secrets never reach the browser. Preview uploads are limited to 5 MB and JPEG, PNG, or WebP images. Use separate Cloudinary folders or credentials for staging and production when practical.
 
 If Render logs `Missing required environment variables: MONGO_URI, JWT_SECRET`, the service is failing before Nest starts. In the Render dashboard, open both `kungacv-api` and `kungacv-api-staging`, add the missing values under **Environment**, save, and redeploy. The `sync: false` entries in `render.yaml` declare secrets but intentionally do not provide their values. Confirm the next deploy logs `server_started` and that `/health/ready` returns HTTP 200.
 
