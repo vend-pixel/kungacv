@@ -108,6 +108,8 @@ services:
         sync: false
       - key: PAYCHANGU_WEBHOOK_SECRET
         sync: false
+      - key: ADMIN_SIGNUP_TOKEN
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
