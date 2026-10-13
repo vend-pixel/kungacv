@@ -1,7 +1,7 @@
 // Shared client API config.
 // All client requests share the environment-driven API base.
 // The deployed KungaCV backend is used only when no environment value is set.
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-backend.onrender.com";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-api.onrender.com";
 
 // Display fallbacks — the pricing page prefers the live `/payments/plans` response.
 export const PRO_PRICE_MWK = Number(process.env.NEXT_PUBLIC_PRO_PRICE_MWK) || 5000;

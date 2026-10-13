@@ -108,9 +108,9 @@ Controllers parse query strings and delegate to `service.getParsedQuery(query)`;
 
 ### API base
 
-`utils/api.js` exports `API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-backend.onrender.com"` plus `apiFetch` and resume CRUD helpers. `app/login`, `app/signup`, and the admin `dataProvider` all import from there — there are no scattered hardcoded URLs.
+`utils/api.js` exports `API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://kungacv-api.onrender.com"` plus `apiFetch` and resume CRUD helpers. `app/login`, `app/signup`, and the admin `dataProvider` use the same environment-driven API base.
 
-⚠️ The fallback host `kungacv-backend.onrender.com` currently returns 404 (dead); `render.yaml` sets `NEXT_PUBLIC_API_URL=https://kungacv-api.onrender.com`. Set the env var explicitly for any local or deployed work.
+The fallback is the production API; set `NEXT_PUBLIC_API_URL` explicitly for local or staging work. Next.js public env values are incorporated into frontend builds, so rebuild after changing the value.
 
 Pricing display falls back to `NEXT_PUBLIC_PRO_PRICE_MWK` / `NEXT_PUBLIC_PRO_PASS_DAYS` (defaults 5000 / 30) but prefers the live `/payments/plans` response.
 
@@ -191,7 +191,7 @@ Backend only — Jest with coverage, ~22 spec files including guards, DTOs, paym
 
 1. **Three separate installs.** No workspace tooling; every command is scoped to a package dir.
 2. **Port 3000 is contested.** Backend and admin both default to 3000. `./start.sh` resolves this by pinning admin to 3002; a bare `npm run dev` in admin will not.
-3. **Set `NEXT_PUBLIC_API_URL`.** Both frontends fall back to a host that currently 404s; `render.yaml` uses `kungacv-api.onrender.com`.
+3. **Set `NEXT_PUBLIC_API_URL`.** Both frontends fall back to `https://kungacv-api.onrender.com`; set it explicitly for local/staging and rebuild after changes.
 4. **Backend ignores `.env.local`.** Only `.env` is loaded.
 5. **No Passport strategy exists** despite the `PassportModule` imports and `passport-jwt` dependency. `AuthGuard` is the only verification path.
 6. **`forbidNonWhitelisted: true`.** New request fields require a DTO change or they 400.
