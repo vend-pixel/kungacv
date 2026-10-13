@@ -109,7 +109,10 @@ export class AdminTemplateController {
     if (!file?.buffer || !Buffer.isBuffer(file.buffer)) {
       throw new BadRequestException('preview image is required');
     }
-    if (file.size > MAX_PREVIEW_BYTES || file.buffer.length > MAX_PREVIEW_BYTES) {
+    if (
+      file.size > MAX_PREVIEW_BYTES ||
+      file.buffer.length > MAX_PREVIEW_BYTES
+    ) {
       throw new BadRequestException('preview image must be 5 MB or smaller');
     }
     if (!ALLOWED_PREVIEW_MIME_TYPES.has(file.mimetype)) {

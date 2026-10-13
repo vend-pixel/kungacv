@@ -35,7 +35,10 @@ describe('AdminPaymentController', () => {
   });
 
   it('returns the payment detail envelope for admins', async () => {
-    service.findAdmin.mockResolvedValue({ tx_ref: 'kunga_1', status: 'success' });
+    service.findAdmin.mockResolvedValue({
+      tx_ref: 'kunga_1',
+      status: 'success',
+    });
     const controller = new AdminPaymentController(service as any);
     await expect(
       controller.get('kunga_1', { user: { role: 'admin' } } as any),

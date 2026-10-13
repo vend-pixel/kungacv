@@ -37,13 +37,22 @@ describe('TemplateController', () => {
   });
 
   it.each([
-    ['uid', () => new TemplateController(templateService as any).getByUid('tpl_1')],
-    ['slug', () => new TemplateController(templateService as any).getBySlug('classic')],
-  ])('returns a public template envelope for %s lookups', async (_kind, call) => {
-    templateService.findPublicByUid.mockResolvedValue({ uid: 'tpl_1' });
-    templateService.findPublicBySlug.mockResolvedValue({ uid: 'tpl_1' });
-    await expect(call()).resolves.toEqual({ template: { uid: 'tpl_1' } });
-  });
+    [
+      'uid',
+      () => new TemplateController(templateService as any).getByUid('tpl_1'),
+    ],
+    [
+      'slug',
+      () => new TemplateController(templateService as any).getBySlug('classic'),
+    ],
+  ])(
+    'returns a public template envelope for %s lookups',
+    async (_kind, call) => {
+      templateService.findPublicByUid.mockResolvedValue({ uid: 'tpl_1' });
+      templateService.findPublicBySlug.mockResolvedValue({ uid: 'tpl_1' });
+      await expect(call()).resolves.toEqual({ template: { uid: 'tpl_1' } });
+    },
+  );
 
   it('rejects non-admin template reads', async () => {
     const controller = new AdminTemplateController(templateService as any);
@@ -101,13 +110,17 @@ describe('TemplateController', () => {
     const controller = new AdminTemplateController(templateService as any);
     const request = { user: { role: 'admin', uid: 'admin_1' } } as any;
 
-    await expect(controller.uploadPreview('tpl_1', undefined as any, request)).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      controller.uploadPreview('tpl_1', undefined as any, request),
+    ).rejects.toThrow(BadRequestException);
     await expect(
       controller.uploadPreview(
         'tpl_1',
-        { buffer: Buffer.alloc(5 * 1024 * 1024 + 1), size: 5 * 1024 * 1024 + 1, mimetype: 'image/png' },
+        {
+          buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+          size: 5 * 1024 * 1024 + 1,
+          mimetype: 'image/png',
+        },
         request,
       ),
     ).rejects.toThrow(BadRequestException);
@@ -149,7 +162,8 @@ describe('TemplateController', () => {
       get: () => controller.get('tpl_1', request),
       create: () => controller.create({} as any, request),
       update: () => controller.update('tpl_1', {} as any, request),
-      uploadPreview: () => controller.uploadPreview('tpl_1', {} as any, request),
+      uploadPreview: () =>
+        controller.uploadPreview('tpl_1', {} as any, request),
       publish: () => controller.publish('tpl_1', request),
       disable: () => controller.disable('tpl_1', request),
       restore: () => controller.restore('tpl_1', request),

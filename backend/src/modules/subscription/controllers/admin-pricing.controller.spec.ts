@@ -45,14 +45,18 @@ describe('AdminPricingController', () => {
     service.setActive.mockResolvedValue({ uid: 'pkg_1' });
     service.softDelete.mockResolvedValue({ uid: 'pkg_1' });
 
-    await expect(controller.list({ page: 2 } as any, request)).resolves.toEqual({
-      subscriptions: [],
-      count: 0,
-    });
+    await expect(controller.list({ page: 2 } as any, request)).resolves.toEqual(
+      {
+        subscriptions: [],
+        count: 0,
+      },
+    );
     await expect(controller.get('pkg_1', request)).resolves.toEqual({
       subscription: { uid: 'pkg_1' },
     });
-    await expect(controller.update('pkg_1', { name: 'Updated' } as any, request)).resolves.toEqual({
+    await expect(
+      controller.update('pkg_1', { name: 'Updated' } as any, request),
+    ).resolves.toEqual({
       subscription: { uid: 'pkg_1' },
     });
     await expect(controller.activate('pkg_1', request)).resolves.toEqual({
@@ -72,8 +76,18 @@ describe('AdminPricingController', () => {
       { name: 'Updated' },
       'admin_1',
     );
-    expect(service.setActive).toHaveBeenNthCalledWith(1, 'pkg_1', true, 'admin_1');
-    expect(service.setActive).toHaveBeenNthCalledWith(2, 'pkg_1', false, 'admin_1');
+    expect(service.setActive).toHaveBeenNthCalledWith(
+      1,
+      'pkg_1',
+      true,
+      'admin_1',
+    );
+    expect(service.setActive).toHaveBeenNthCalledWith(
+      2,
+      'pkg_1',
+      false,
+      'admin_1',
+    );
     expect(service.softDelete).toHaveBeenCalledWith('pkg_1', 'admin_1');
   });
 });
