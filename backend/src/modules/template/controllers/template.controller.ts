@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,6 +24,13 @@ import {
   UpdateTemplateDto,
 } from '../dto/template.dto';
 import { TemplateService } from '../services/template.service';
+
+const MAX_PREVIEW_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PREVIEW_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
 
 @Controller('templates')
 export class TemplateController {
@@ -87,12 +95,9 @@ export class AdminTemplateController {
   @Post(':uid/preview')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: MAX_PREVIEW_BYTES },
       fileFilter: (_request, file, callback) =>
-        callback(
-          null,
-          ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype),
-        ),
+        callback(null, ALLOWED_PREVIEW_MIME_TYPES.has(file.mimetype)),
     }),
   )
   async uploadPreview(
@@ -101,6 +106,15 @@ export class AdminTemplateController {
     @Req() req: CustomRequest,
   ) {
     this.assertAdmin(req);
+    if (!file?.buffer || !Buffer.isBuffer(file.buffer)) {
+      throw new BadRequestException('preview image is required');
+    }
+    if (file.size > MAX_PREVIEW_BYTES || file.buffer.length > MAX_PREVIEW_BYTES) {
+      throw new BadRequestException('preview image must be 5 MB or smaller');
+    }
+    if (!ALLOWED_PREVIEW_MIME_TYPES.has(file.mimetype)) {
+      throw new BadRequestException('preview image must be JPEG, PNG, or WebP');
+    }
     return { template: await this.templateService.uploadPreview(uid, file) };
   }
 
