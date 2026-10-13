@@ -18,6 +18,7 @@ import { User } from 'src/modules/user/schemas/user.schema';
 import { Purchase } from 'src/modules/purchase/schema/purchase.schema';
 import { PayChanguService, VerifyResult } from './paychangu.service';
 import { InitiatePaymentDto } from '../dto';
+import { AdminPaymentListQueryDto } from '../dto/admin-payment.dto';
 
 @Injectable()
 export class PaymentService {
@@ -350,6 +351,71 @@ export class PaymentService {
       currency: payment.currency,
       plan: payment.plan,
       paid_at: payment.paid_at,
+    };
+  }
+
+  async listAdmin(query: AdminPaymentListQueryDto) {
+    const filter: Record<string, unknown> = {};
+    if (query.status) filter.status = query.status;
+    if (query.plan) filter.plan = query.plan;
+    if (query.userUid) filter.user_uid = query.userUid;
+    if (query.txRef) filter.tx_ref = query.txRef;
+    if (query.from || query.to) {
+      const createdAt: Record<string, Date> = {};
+      if (query.from) createdAt.$gte = new Date(query.from);
+      if (query.to) createdAt.$lte = new Date(query.to);
+      if (query.from && query.to && createdAt.$gte > createdAt.$lte) {
+        throw new BadRequestException('from date must be before to date');
+      }
+      filter.createdAt = createdAt;
+    }
+    const sortFields = new Set(['createdAt', 'paid_at', 'amount', 'status']);
+    const sortField = sortFields.has(query.sort) ? query.sort : 'createdAt';
+    const direction = query.order === 'asc' ? 1 : -1;
+    const skip = (query.page - 1) * query.perPage;
+    const [rows, count] = await Promise.all([
+      this.paymentModel
+        .find(filter)
+        .sort({ [sortField]: direction, _id: -1 })
+        .skip(skip)
+        .limit(query.perPage)
+        .lean(),
+      this.paymentModel.countDocuments(filter),
+    ]);
+    return {
+      payments: rows.map((payment) => this.toAdminJSON(payment)),
+      count,
+      page: query.page,
+      perPage: query.perPage,
+    };
+  }
+
+  async findAdmin(txRef: string) {
+    const payment = await this.paymentModel.findOne({ tx_ref: txRef }).lean();
+    if (!payment) throw new NotFoundException('payment not found');
+    return this.toAdminJSON(payment);
+  }
+
+  private toAdminJSON(payment: Payment) {
+    return {
+      id: payment.tx_ref,
+      tx_ref: payment.tx_ref,
+      user_uid: payment.user_uid,
+      user_email: payment.user_email,
+      plan: payment.plan,
+      package_uid: payment.package_uid,
+      provider: payment.provider,
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      mode: payment.mode,
+      charge_id: payment.charge_id,
+      channel: payment.channel,
+      paid_at: payment.paid_at,
+      failed_at: payment.failed_at,
+      failure_code: payment.failure_code,
+      createdAt: (payment as any).createdAt,
+      updatedAt: (payment as any).updatedAt,
     };
   }
 }

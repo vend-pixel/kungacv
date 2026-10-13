@@ -1,29 +1,63 @@
+import { API_BASE } from "./dataProvider";
+
+const TOKEN_KEY = "admin_access_token";
+const USER_KEY = "admin_user";
+
 export const authProvider = {
-  // called when the user attempts to log in
-  login: ({ username }) => {
-    localStorage.setItem("username", username);
-    // accept all username/password combinations
+  async login({ username, password }) {
+    const response = await fetch(`${API_BASE}/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: username, password }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.access_token || body.user?.role !== "admin") {
+      throw new Error(body.message || "Administrator login failed");
+    }
+    localStorage.setItem(TOKEN_KEY, body.access_token);
+    localStorage.setItem(USER_KEY, JSON.stringify(body.user));
+  },
+
+  logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     return Promise.resolve();
   },
-  // called when the user clicks on the logout button
-  logout: () => {
-    localStorage.removeItem("username");
-    return Promise.resolve();
-  },
-  // called when the API returns an error
-  checkError: ({ status }) => {
+
+  checkError({ status }) {
     if (status === 401 || status === 403) {
-      localStorage.removeItem("username");
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       return Promise.reject();
     }
     return Promise.resolve();
   },
-  // called when the user navigates to a new location, to check for authentication
-  checkAuth: () => {
-    return localStorage.getItem("username")
+
+  checkAuth() {
+    return localStorage.getItem(TOKEN_KEY)
       ? Promise.resolve()
       : Promise.reject();
   },
-  // called when the user navigates to a new location, to check for permissions / roles
-  getPermissions: () => Promise.resolve(),
+
+  getPermissions() {
+    try {
+      const user = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+      return Promise.resolve(user?.role || null);
+    } catch {
+      return Promise.resolve(null);
+    }
+  },
+
+  getIdentity() {
+    try {
+      const user = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+      return Promise.resolve({
+        id: user?.uid,
+        name: user?.name,
+        email: user?.email,
+      });
+    } catch {
+      return Promise.reject();
+    }
+  },
 };

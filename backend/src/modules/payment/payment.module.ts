@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 // INNER IMPORTS
 import { PaymentController } from './controllers/payment.controller';
+import { AdminPaymentController } from './controllers/admin-payment.controller';
+import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { PaymentService } from './services/payment.service';
 import { PayChanguService } from './services/paychangu.service';
 import { Payment, PaymentSchema } from './schema/payment.schema';
@@ -28,7 +30,7 @@ import {
       { name: Purchase.name, schema: PurchaseSchema },
     ]),
   ],
-  controllers: [PaymentController],
-  providers: [PaymentService, PayChanguService],
+  controllers: [PaymentController, AdminPaymentController],
+  providers: [PaymentService, PayChanguService, AuthGuard],
 })
 export class PaymentModule {}

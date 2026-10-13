@@ -1,6 +1,6 @@
 # React Admin API provider contract
 
-The admin frontend must stop using `ra-data-json-server` and `jsonplaceholder.typicode.com`. Phase 2 now provides the template public and admin routes below. Pricing and payment provider mappings remain the next frontend integration slice.
+The admin frontend must stop using `ra-data-json-server` and `jsonplaceholder.typicode.com`. Phase 3 provides the template, pricing, and read-only payment admin routes below.
 
 ## Authentication
 
@@ -25,11 +25,17 @@ Clear the token and reject the request on HTTP 401 or 403.
 | template restore      | `POST /admin/templates/:uid/restore` | `{ template }` → `{ data: template }`                                |
 | template soft-delete  | `DELETE /admin/templates/:uid`       | `{ template }` → `{ data: template }`                                |
 | pricing list          | `GET /admin/pricing`                 | `{ subscriptions, count }` → `{ data: subscriptions, total: count }` |
+| pricing detail        | `GET /admin/pricing/:uid`            | `{ subscription }` → `{ data: subscription }`                        |
 | pricing create/update | `POST/PATCH /admin/pricing...`       | `{ subscription }` → `{ data: subscription }`                        |
+| pricing activate      | `POST /admin/pricing/:uid/activate`  | `{ subscription }` → `{ data: subscription }`                        |
+| pricing disable       | `POST /admin/pricing/:uid/disable`   | `{ subscription }` → `{ data: subscription }`                        |
+| pricing soft-delete   | `DELETE /admin/pricing/:uid`         | `{ subscription }` → `{ data: subscription }`                        |
 | payments list         | `GET /admin/payments`                | `{ payments, count }` → `{ data: payments, total: count }`           |
 | payment detail        | `GET /admin/payments/:txRef`         | `{ payment }` → `{ data: payment }`                                  |
 
 The provider must translate React Admin pagination (`page`, `perPage`), sorting, and allowlisted filters into query parameters. It must not forward arbitrary query objects to MongoDB.
+
+Payment resources are intentionally read-only. Do not add `create`, `update`, or `delete` calls for payments in the provider.
 
 ## Uploads
 

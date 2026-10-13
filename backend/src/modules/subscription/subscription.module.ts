@@ -7,6 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 // INNER IMPORTS
 import { SubscriptionService } from './services/subscriptions.service';
 import { SubscriptionController } from './controllers/subscriptions.controller';
+import { AdminPricingController } from './controllers/admin-pricing.controller';
+import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   Subscription,
@@ -30,7 +32,7 @@ import {
       { name: Subscription.name, schema: SubscriptionSchema },
     ]),
   ],
-  controllers: [SubscriptionController],
-  providers: [SubscriptionService],
+  controllers: [SubscriptionController, AdminPricingController],
+  providers: [SubscriptionService, AuthGuard],
 })
 export class SubscriptionModule {}

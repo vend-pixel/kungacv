@@ -11,7 +11,7 @@ import {
 export class CreateSubscriptionDto {
   @IsString()
   @IsOptional()
-  uid: string;
+  uid?: string;
 
   @IsString()
   @IsString()
@@ -20,11 +20,23 @@ export class CreateSubscriptionDto {
 
   @IsString()
   @IsOptional()
-  readonly description: string;
+  readonly description?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly slug?: string;
 
   @IsNumber()
   @IsOptional()
-  readonly price: number;
+  readonly price?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly currency?: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly sortOrder?: number;
 
   @IsBoolean()
   @IsOptional()

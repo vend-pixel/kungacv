@@ -1,20 +1,15 @@
 import * as React from "react";
 import { Admin, EditGuesser, ListGuesser, Resource } from "react-admin";
 import { authProvider } from "./AuthProvider";
+import dataProvider from "./dataProvider";
 import { Login, Layout } from "./layout";
 import { Dashboard } from "./Dashboard";
 import { lightTheme } from "./layout/themes";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import PaymentIcon from "@mui/icons-material/Payment";
-import SettingsIcon from "@mui/icons-material/Settings";
 import { UserList } from "../components/User/ListUser";
-
-import jsonServerProvider from "ra-data-json-server";
-
-const dataProvider = jsonServerProvider("https://jsonplaceholder.typicode.com");
 
 const App = () => (
   <Admin
@@ -27,9 +22,10 @@ const App = () => (
     theme={lightTheme}
   >
     <Resource
-      name="subscriptions"
+      name="templates"
       list={ListGuesser}
-      icon={AssignmentTurnedInIcon}
+      edit={EditGuesser}
+      icon={ContentPasteIcon}
     />
     <Resource
       name="users"
@@ -38,9 +34,7 @@ const App = () => (
       edit={EditGuesser}
     />
     <Resource name="pricing" list={ListGuesser} icon={PaidIcon} />
-    <Resource name="content" list={ListGuesser} icon={ContentPasteIcon} />
     <Resource name="payments" list={ListGuesser} icon={PaymentIcon} />
-    <Resource name="settings" list={ListGuesser} icon={SettingsIcon} />
   </Admin>
 );
 

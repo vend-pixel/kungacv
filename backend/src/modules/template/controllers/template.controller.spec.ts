@@ -57,4 +57,30 @@ describe('TemplateController', () => {
     );
     expect(result).toEqual({ template: { uid: 'tpl_1' } });
   });
+
+  it.each([
+    ['get'],
+    ['create'],
+    ['update'],
+    ['uploadPreview'],
+    ['publish'],
+    ['disable'],
+    ['restore'],
+    ['remove'],
+  ])('rejects non-admin access to %s', async (name) => {
+    const controller = new AdminTemplateController(templateService as any);
+    const request = { user: { role: 'user' } } as any;
+    const call = {
+      get: () => controller.get('tpl_1', request),
+      create: () => controller.create({} as any, request),
+      update: () => controller.update('tpl_1', {} as any, request),
+      uploadPreview: () =>
+        controller.uploadPreview('tpl_1', {} as any, request),
+      publish: () => controller.publish('tpl_1', request),
+      disable: () => controller.disable('tpl_1', request),
+      restore: () => controller.restore('tpl_1', request),
+      remove: () => controller.remove('tpl_1', request),
+    }[name as string];
+    await expect(call()).rejects.toThrow(ForbiddenException);
+  });
 });
