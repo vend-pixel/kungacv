@@ -33,7 +33,7 @@ const LIST_FILTERS = {
   ],
   pricing: ["search", "active", "includeDeleted"],
   payments: ["status", "plan", "userUid", "txRef", "from", "to"],
-  users: ["name", "email", "active", "role"],
+  users: ["name", "email", "active"],
 };
 
 const configFor = (resource) =>
@@ -93,10 +93,16 @@ function withId(record, fallback) {
   };
 }
 
+function withoutId(data = {}) {
+  const { id: _id, ...payload } = data;
+  return payload;
+}
+
 function queryFor(resource, params) {
   const query = new URLSearchParams();
   query.set("page", String(params.pagination?.page || 1));
   query.set("perPage", String(params.pagination?.perPage || 25));
+  if (resource === "users") query.set("count", "true");
   const sortField = params.sort?.field;
   if (sortField) query.set("sort", sortField);
   if (params.sort?.order) query.set("order", params.sort.order.toLowerCase());
@@ -112,6 +118,15 @@ function queryFor(resource, params) {
     }
   });
   return query.toString();
+}
+
+async function postAction(resource, id, action) {
+  const body = await request(
+    `${configFor(resource).path}/${encodeURIComponent(id)}/${action}`,
+    { method: "POST", body: JSON.stringify({}) },
+  );
+  const config = configFor(resource);
+  return { data: withId(body[config.singular], id) };
 }
 
 const dataProvider = {
@@ -147,7 +162,7 @@ const dataProvider = {
     const config = configFor(resource);
     const body = await request(endpointFor(resource, "create"), {
       method: "POST",
-      body: JSON.stringify(params.data),
+      body: JSON.stringify(withoutId(params.data)),
     });
     const record = body[config.singular] || body.template || body.subscription;
     return { data: withId(record, params.data.id) };
@@ -159,11 +174,11 @@ const dataProvider = {
     const config = configFor(resource);
     const body = await request(endpointFor(resource, "update", params.id), {
       method: "PATCH",
-      body: JSON.stringify(params.data),
+      body: JSON.stringify(withoutId(params.data)),
     });
     return {
       data: withId(
-        body[config.singular] || body.template || body.subscription,
+        body[config.singular] || body.template || body.subscription || body.user,
         params.id,
       ),
     };
@@ -178,7 +193,7 @@ const dataProvider = {
     });
     return {
       data: withId(
-        body[config.singular] || body.template || body.subscription,
+        body[config.singular] || body.template || body.subscription || body.user,
         params.id,
       ),
     };
@@ -212,6 +227,22 @@ const dataProvider = {
       params.ids.map((id) => dataProvider.delete(resource, { id })),
     );
     return { data: results.map((result) => result.data.id) };
+  },
+
+  async activatePricing(id) {
+    return postAction("pricing", id, "activate");
+  },
+
+  async disablePricing(id) {
+    return postAction("pricing", id, "disable");
+  },
+
+  async publishTemplate(id) {
+    return postAction("templates", id, "publish");
+  },
+
+  async disableTemplate(id) {
+    return postAction("templates", id, "disable");
   },
 
   async uploadTemplatePreview(templateUid, file) {
