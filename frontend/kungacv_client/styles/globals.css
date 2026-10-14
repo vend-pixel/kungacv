@@ -42,6 +42,16 @@ body {
 .btn {
     @apply rounded-full px-[1.6rem] py-2;
 }
+.nav-action-mark {
+    display: inline-flex;
+    height: 1.15rem;
+    width: 1.15rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    line-height: 1;
+}
 
 .gradient {
     background: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
@@ -363,7 +373,20 @@ body {
 }
 .editor-preview-scroll {
     height: calc(100vh - 4rem);
+    flex-basis: 0;
+    overscroll-behavior-y: contain;
     scrollbar-color: #0070f0 #eef0f4;
+}
+.editor-back-mark {
+    display: inline-grid;
+    height: 1.75rem;
+    width: 1.75rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #eef5ff;
+    color: #0050e0;
+    font-size: 1.15rem;
+    font-weight: 800;
 }
 .saved-document-card {
     display: flex;

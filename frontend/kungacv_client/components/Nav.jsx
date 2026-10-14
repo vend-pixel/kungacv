@@ -34,9 +34,6 @@ const Nav = () => {
                         <Logo variant="dark" size="md" />
                     </Link>
                     <nav className="center-flex gap-2 text-[.85rem] font-extrabold md:gap-4">
-                        <Link href="/cover-letter" className="hidden rounded-full px-3 py-2 text-white/80 transition hover:bg-ink-800 hover:text-white md:flex">
-                            Cover letter
-                        </Link>
                         <Link href="/job-tracker" className="hidden rounded-full px-3 py-2 text-white/80 transition hover:bg-ink-800 hover:text-white md:flex">
                             Job tracker
                         </Link>
@@ -47,8 +44,8 @@ const Nav = () => {
                                     className="hidden md:flex lg:flex xl:flex items-center justify-center gap-3 btn border-4 border-ink-700 text-white h-10 min-w[120px] hover:border-ink-600"
                                 >
                                     Try for free
-                                    <span className="gradient w-[18px] h-[18px] rounded-full flex items-center justify-center mt-[.1rem]">
-                                        <img src="/navarrow.svg" alt="nav arrow" className="w-1" />
+                                    <span className="gradient nav-action-mark" aria-hidden="true">
+                                        ↗
                                     </span>
                                 </Link>
                                 <Link href="/login" className="center-flex gap-3 btn bg-brand-600 text-white h-10 min-w[120px] hover:bg-brand-700">

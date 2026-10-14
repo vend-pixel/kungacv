@@ -19,6 +19,7 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
             <button
                 type="button"
                 aria-expanded={show}
+                aria-controls={`${title.toLowerCase().replace(/\s+/g, "-")}-panel`}
                 aria-label={`${show ? "Collapse" : "Open"} ${title}`}
                 onClick={toggleShow}
                 className={`flex w-full cursor-pointer justify-between bg-white p-4 md:p-6 rounded-t-3xl ${
@@ -85,7 +86,7 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
                 </div>
             </button>
             {show && (
-                <div className="sc-hZyDwR cSREZu h-auto">
+                <div id={`${title.toLowerCase().replace(/\s+/g, "-")}-panel`} className="sc-hZyDwR cSREZu h-auto" role="region" aria-label={`${title} entries`}>
                     <div className="w-full">
                         <div data-rbd-droppable-id="droppable-1" data-rbd-droppable-context-id="9">
                             <div
