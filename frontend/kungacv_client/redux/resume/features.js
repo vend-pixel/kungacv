@@ -641,6 +641,15 @@ export const resume = createSlice({
             state.title = null;
             state.saveStatus = "local";
         },
+        applyTemplateStyle: (state, action) => {
+            const customization = action.payload?.customization;
+            if (!customization) return;
+            Object.assign(state, _.cloneDeep(initialState));
+            state.customization = _.cloneDeep(customization);
+            state.activeResumeUid = null;
+            state.title = null;
+            state.saveStatus = "local";
+        },
         hydrateResume: (state, action) => {
             const { resume_uid, title, content } = action.payload || {};
             Object.assign(state, initialState);
@@ -703,6 +712,7 @@ export const {
     setSaveStatus,
     setResumeTitle,
     applyTemplatePreset,
+    applyTemplateStyle,
     hydrateResume,
 } = resume.actions;
 export default resume.reducer;
