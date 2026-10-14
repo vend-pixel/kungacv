@@ -260,7 +260,7 @@ body {
 .workspace-nav-link:hover,
 .workspace-nav-link-active {
     background: #ffffff;
-    color: #0a0a0b;
+    color: #0050e0;
 }
 .workspace-nav-link-active svg {
     color: #0070f0;
@@ -283,8 +283,8 @@ body {
 }
 .template-filter:hover,
 .template-filter-active {
-    border-color: #0a0a0b;
-    background: #0a0a0b;
+    border-color: #0070f0;
+    background: #0070f0;
     color: white;
 }
 .template-card {
@@ -323,7 +323,7 @@ body {
     align-items: center;
     gap: 0.35rem;
     border-radius: 999px;
-    background: #0a0a0b;
+    background: #0070f0;
     padding: 0.55rem 0.8rem;
     color: white;
     font-size: 0.7rem;
@@ -338,8 +338,27 @@ body {
     place-items: center;
     border: 1px dashed #8a8a93;
     border-radius: 0.8rem;
-    background: linear-gradient(135deg, #faf9f5, #ececf1);
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
     color: #0070f0;
+}
+.editor-main-layout {
+    height: 100%;
+    min-height: 0;
+}
+.editor-form-scroll,
+.editor-preview-scroll {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+.editor-form-scroll {
+    scrollbar-color: #9ca3af transparent;
+}
+.editor-preview-scroll {
+    height: calc(100vh - 4rem);
+    scrollbar-color: #0070f0 #eef0f4;
 }
 .saved-document-card {
     display: flex;
@@ -421,7 +440,7 @@ body {
     gap: 0.6rem;
     border: 1px solid #deddd6;
     border-radius: 0.85rem;
-    background: #faf9f5;
+    background: #f8fafc;
     padding: 0.45rem 0.55rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }

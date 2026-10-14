@@ -207,7 +207,7 @@ const CreateResume = () => {
             <MobileNav currentComponent={currentComponent} setCurrentComponent={setCurrentComponent} setDemo={setDemo} />
 
             {/* left */}
-            <div className="flex min-h-0 grow items-stretch gap-8 relative">
+            <div className="editor-main-layout flex h-full min-h-0 grow items-stretch gap-8 relative">
                 {/* left */}
                 <nav className="grow-0 sticky top-8 z-[10000] hidden sm:flex flex-col items-center justify-center gap-10 px-2 py-5 rounded-xl shadow-lg bg-gray-50" aria-label="Editor sections">
                     <Link href={"/"}>
@@ -244,7 +244,7 @@ const CreateResume = () => {
                 </nav>
 
                 {/* right */}
-                <main id="editor-content" className="flex min-h-0 grow flex-col justify-center items-stretch gap-4 sm:max-h-screen sm:overflow-y-auto" aria-label="Resume editor">
+                <main id="editor-content" className="editor-form-scroll flex h-full min-h-0 grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
                     <div className="sticky top-0 rounded-b-lg pt-0 sm:pt-[2rem] bg-[#EEF0F4] z-[6] mb-6 w-full shadow-sm">
                         <div className="sticky top-8 z-[1000]  grid grid-cols-[min-content_1fr_min-content] items-center bg-white px-6 py-3 md:px-8 md:py-4  lg:px-9 lg:py-5 rounded-xl shadow-none sm:shadow-lg">
                             <Link
@@ -426,7 +426,7 @@ const CreateResume = () => {
             <aside
                 id="resume-print-root"
                 aria-label="Resume preview"
-                className={`hidden sm:block grow-[4] bg-white min-h-0 h-[calc(100vh-4rem)] my-[2rem] w-1/4 px-[3rem] overflow-y-auto break-words sticky top-8${
+                className={`editor-preview-scroll hidden sm:block grow-[4] bg-white min-h-0 my-[2rem] w-1/4 px-[3rem] break-words${
                     isPro ? "" : " is-watermarked"
                 }`}
                 style={previewStyle}

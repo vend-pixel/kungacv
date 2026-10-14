@@ -78,18 +78,18 @@ const ResumeMain = () => {
     return (
         <>
             <Nav />
-            <main className="workspace-page min-h-screen bg-[#F5F4F0] text-ink-950">
+            <main className="workspace-page min-h-screen bg-gray-50 text-black">
                 <div className="pageContainer py-8 md:py-12">
                     <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
                         <aside className="hidden lg:block">
-                            <div className="sticky top-8 rounded-[1.5rem] border border-[#deddd6] bg-[#e9e7df] p-4">
+                            <div className="sticky top-8 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                                 <p className="px-3 pb-4 text-xs font-bold uppercase tracking-[0.18em] text-ink-500">Workspace</p>
                                 <nav className="space-y-1" aria-label="Workspace navigation">
                                     <Link href="/resume" className="workspace-nav-link workspace-nav-link-active"><FiFileText /> Resume</Link>
                                     <Link href="/cover-letter" className="workspace-nav-link"><FiPenTool /> Cover letter</Link>
                                     <Link href="/resume" className="workspace-nav-link workspace-nav-link-muted"><FiBriefcase /> Job tracker <span className="ml-auto text-[10px] uppercase">Soon</span></Link>
                                 </nav>
-                                <div className="mt-12 rounded-2xl bg-white/70 p-4">
+                                <div className="mt-12 rounded-2xl bg-brand-50 p-4">
                                     <p className="text-sm font-bold">Your first resume is free</p>
                                     <p className="mt-2 text-xs leading-5 text-ink-500">Build, preview and export without a credit card.</p>
                                     <Link href="/resume/create" className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-brand-700">Start building <FiArrowUpRight /></Link>
@@ -104,7 +104,7 @@ const ResumeMain = () => {
                                     <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Start building your resume</h1>
                                     <p className="mt-3 max-w-2xl text-base text-ink-500">Choose a design you like. Add your story. Switch templates whenever you want.</p>
                                 </div>
-                                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-ink-950 bg-transparent px-5 py-3 text-sm font-bold transition hover:bg-ink-950 hover:text-white">
+                                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-brand-600 bg-transparent px-5 py-3 text-sm font-bold text-brand-700 transition hover:bg-brand-600 hover:text-white">
                                     <FiUpload /> Import existing resume
                                     <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="sr-only" onChange={handleImport} />
                                 </label>
@@ -112,7 +112,7 @@ const ResumeMain = () => {
 
                             <div className="mb-7 flex flex-wrap gap-2" role="tablist" aria-label="Template filters">
                                 {filters.map((item) => (
-                                    <button key={item.id} type="button" role="tab" aria-selected={filter === item.id} onClick={() => setFilter(item.id)} className={`template-filter ${filter === item.id ? "template-filter-active" : ""}`}>
+                                <button key={item.id} type="button" role="tab" aria-selected={filter === item.id} onClick={() => setFilter(item.id)} className={`template-filter ${filter === item.id ? "template-filter-active" : ""}`}>
                                         {item.icon} {item.label}
                                     </button>
                                 ))}
