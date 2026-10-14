@@ -1,172 +1,88 @@
 "use client";
-
 import Nav from "@components/Nav";
 import { API_BASE } from "@utils/api";
 import { addUserData } from "@redux/auth/features";
 import { trackEvent } from "@utils/analytics";
 import { useAppSelector } from "@redux/hooks";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 
 const SignUp = () => {
     const userData = useAppSelector((state) => state.persistedReducer.auth.userData);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get("returnTo") || "/";
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [show, setShow] = useState(false);
-
+    const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const dispatch = useDispatch();
+    const passwordChecks = useMemo(() => ({ length: password.length >= 8, number: /\d/.test(password), letter: /[A-Za-z]/.test(password) }), [password]);
 
-    if (userData.access_token) router.push("/");
+    useEffect(() => {
+        if (userData.access_token) router.replace(returnTo);
+    }, [returnTo, router, userData.access_token]);
 
-    const handleEmail = (e) => setEmail(e.target.value);
-    const handlePassword = (e) => setPassword(e.target.value);
-
-    const handleSubmit = () => {
-        if (!email || !password) {
-            return alert("Email and password required");
-        }
-
-        const url = API_BASE;
-        const payload = { email, password, name: "NOT PROVIDED" };
-
-        console.log("PAYLOAD", payload);
-
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const nextErrors = {};
+        if (!email.trim()) nextErrors.email = "Enter an email address.";
+        if (!password) nextErrors.password = "Create a password to continue.";
+        else if (!passwordChecks.length || !passwordChecks.number || !passwordChecks.letter) nextErrors.password = "Use at least 8 characters with a letter and a number.";
+        setFieldErrors(nextErrors);
+        setError("");
+        if (Object.keys(nextErrors).length) return;
         setLoading(true);
-
-        fetch(`${url}/auth/signup`, {
-            headers: {
-                "content-type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify(payload),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("DATA", data);
-                if (data.access_token && data.user) {
-                    dispatch(addUserData(data));
-                    trackEvent("signup");
-                    router.push("/");
-                } else {
-                    return alert(data.message);
-                }
-            })
-            .catch((err) => alert(err.message))
-            .finally(() => setLoading(false));
+        try {
+            const response = await fetch(`${API_BASE}/auth/signup`, {
+                headers: { "content-type": "application/json" },
+                method: "POST",
+                body: JSON.stringify({ email: email.trim(), password, name: "NOT PROVIDED" }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.access_token || !data.user) throw new Error(data.message || "We couldn't create your account. Please try again.");
+            dispatch(addUserData(data));
+            trackEvent("signup");
+            router.replace(returnTo);
+        } catch (err) {
+            setError(err.message || "We couldn't create your account. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <>
             <Nav />
-            <div className="flex flex-col min-h-[80vh] w-[100vw] justify-center items-center">
-                <div className="rounded-[1rem] shadow-md min-h-[calc(100vh-theme(space.16))] w-full max-w-lg bg-white p-10 pt-6 sm:p-12 sm:pt-8 md:min-h-min md:p-14 md:pt-10 lg:p-16 lg:pt-16">
-                    <h1 className="text-primaryBlack mt-6 flex text-[28px] font-bold sm:mt-10 sm:text-[32px] md:mt-4 md:justify-center md:text-[38px]">
-                        Create account
-                    </h1>
-                    <div className="mt-10 lg:mt-12">
-                        <div className="removeAutocompleteBg relative">
-                            <input
-                                id="emailId"
-                                name="email"
-                                type="email"
-                                className="peer font- h-14 w-full cursor-text appearance-none border-b-2 border-gray-300 bg-white  text-base text-primaryBlack placeholder-transparent focus:outline-none md:text-xl"
-                                placeholder="Enter email"
-                                value={email}
-                                onInput={handleEmail}
-                            />
-                            <label
-                                htmlFor="emailId"
-                                className="absolute left-0 -top-4 cursor-text text-sm text-gray-600 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-4 peer-focus:text-sm   peer-focus:text-gray-600 md:text-base md:peer-placeholder-shown:text-xl md:peer-focus:text-base"
-                            >
-                                <span className="flex items-center space-x-3">
-                                    <img src="/mail.svg" className="w-5" alt="mail" />
-                                    <span className="font-semibold">Email</span>
-                                </span>
-                            </label>
+            <main className="auth-page flex min-h-[80vh] w-full flex-col items-center justify-center px-4 py-10">
+                <form onSubmit={handleSubmit} noValidate className="w-full max-w-lg rounded-[1rem] bg-white p-8 shadow-md sm:p-12 md:p-14">
+                    <p className="mb-3 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-brand-700">Save your progress</p>
+                    <h1 className="text-center text-[32px] font-bold text-primaryBlack">Create account</h1>
+                    <p className="mx-auto mt-3 max-w-sm text-center text-sm leading-6 text-gray-500">Sync resumes across devices and keep your application materials organised.</p>
+                    {error && <div className="auth-error mt-6" role="alert">{error}</div>}
+                    <div className="mt-10 space-y-7">
+                        <div>
+                            <label htmlFor="emailId" className="field-label">Email</label>
+                            <input id="emailId" name="email" type="email" autoComplete="email" className={`auth-input ${fieldErrors.email ? "auth-input-error" : ""}`} placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(fieldErrors.email)} />
+                            {fieldErrors.email && <p className="auth-field-error">{fieldErrors.email}</p>}
                         </div>
-                        <div className="relative mt-10 lg:mt-12">
-                            <div className="removeAutocompleteBg relative">
-                                <input
-                                    id="passwordId"
-                                    name="password"
-                                    type={show ? "text" : "password"}
-                                    className="peer font- h-14 w-full cursor-text appearance-none border-b-2 border-gray-300 bg-white  text-base text-primaryBlack placeholder-transparent focus:outline-none md:text-xl"
-                                    placeholder="Enter Password"
-                                    value={password}
-                                    onInput={handlePassword}
-                                />
-                                <label
-                                    htmlFor="passwordId"
-                                    className="absolute left-0 -top-4 cursor-text text-sm text-gray-600 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-4 peer-focus:text-sm   peer-focus:text-gray-600 md:text-base md:peer-placeholder-shown:text-xl md:peer-focus:text-base"
-                                >
-                                    <span className="flex items-center space-x-3">
-                                        <img src="password.svg" className="w-5" alt="password" />
-                                        <span className="font-semibold">Password</span>
-                                    </span>
-                                </label>
-                            </div>
-                            <button
-                                type="button"
-                                className="border-none appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 absolute right-0 top-[58%] -translate-y-1/2 cursor-pointer text-base font-bold hover:opacity-80"
-                                onClick={() => setShow(!show)}
-                            >
-                                {show ? "Hide" : "Show"}
-                            </button>
-                        </div>
-                        <div className="mt-6 sm:mt-12 md:mt-16">
-                            <label>
-                                <input type="checkbox" name="productUpdateNotifications" className="fixed h-[1px] w-[1px] opacity-0" value="" />
-                                <div className="flex cursor-pointer items-center hover:opacity-80">
-                                    <div className="flex cursor-pointer items-center">
-                                        <div className="sc-dkPtRN lfpAMT"></div>
-                                    </div>
-                                    <span className="ml-1 text-base font-semibold">Get KungaCV updates. No spam ever.</span>
-                                </div>
-                            </label>
-                        </div>
-                        <div className="mt-8 flex justify-center sm:mt-11 md:mt-14 lg:mt-16">
-                            <button
-                                type="submit"
-                                className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 px-7 py-2 rounded-full font-extrabold h-15 text-[17px] min-w-[180px] text-white bg-brand-600 hover:bg-brand-700 shadow-product w-[300px]"
-                                onClick={handleSubmit}
-                            >
-                                Create account
-                            </button>
-                        </div>
-                        <div className="mt-12 flex justify-center">
-                            <p className="whitespace-pre-line  text-justify align-middle text-sm text-gray-600">
-                                By creating an account, you agree to our
-                                <a
-                                    href="/terms-of-service"
-                                    target="_blank"
-                                    className="appearance-none no-underline decoration-current font-bold text-primaryBlack"
-                                >
-                                    Terms&nbsp;of&nbsp;Service
-                                </a>
-                                . We do not sell your personal data. To learn more about how we collect, use, share and protect it please read our
-                                <a
-                                    href="/privacy-policy"
-                                    target="_blank"
-                                    className="appearance-none no-underline decoration-current font-bold text-primaryBlack"
-                                >
-                                    Privacy&nbsp;Policy
-                                </a>
-                            </p>
-                        </div>
-                        <div className="mt-8 flex justify-center">
-                            <a className="text-base hover:opacity-80" href="/login">
-                                Have already an account?
-                                <span className="ml-2 font-bold">Login</span>
-                            </a>
+                        <div>
+                            <label htmlFor="passwordId" className="field-label">Password</label>
+                            <div className="relative"><input id="passwordId" name="password" type={show ? "text" : "password"} autoComplete="new-password" className={`auth-input pr-16 ${fieldErrors.password ? "auth-input-error" : ""}`} placeholder="Create a password" value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(fieldErrors.password)} /><button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-700" onClick={() => setShow((current) => !current)}>{show ? "Hide" : "Show"}</button></div>
+                            <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] font-bold"><span className={passwordChecks.length ? "auth-check auth-check-on" : "auth-check"}>8+ chars</span><span className={passwordChecks.letter ? "auth-check auth-check-on" : "auth-check"}>A letter</span><span className={passwordChecks.number ? "auth-check auth-check-on" : "auth-check"}>A number</span></div>
+                            {fieldErrors.password && <p className="auth-field-error">{fieldErrors.password}</p>}
                         </div>
                     </div>
-                </div>
-            </div>
+                    <label className="mt-7 flex items-start gap-2 text-sm text-gray-600"><input type="checkbox" name="productUpdateNotifications" className="mt-1" /><span>Get KungaCV updates. No spam ever.</span></label>
+                    <button type="submit" disabled={loading} className="mt-8 flex h-14 w-full items-center justify-center rounded-full bg-brand-600 px-7 text-[17px] font-extrabold text-white shadow-product transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Creating account…" : "Create account"}</button>
+                    <p className="mt-8 text-center text-sm text-gray-600">Already have an account? <a className="font-bold text-primaryBlack hover:underline" href={`/login?returnTo=${encodeURIComponent(returnTo)}`}>Log in</a></p>
+                    <p className="mt-6 text-center text-xs leading-5 text-gray-500">By creating an account, you agree to our <a className="font-bold underline" href="/terms-of-service">Terms</a> and <a className="font-bold underline" href="/privacy-policy">Privacy Policy</a>.</p>
+                </form>
+            </main>
         </>
     );
 };
-
 export default SignUp;

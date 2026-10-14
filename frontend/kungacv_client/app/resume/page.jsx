@@ -5,8 +5,11 @@ import Link from "next/link";
 import { FiArrowUpRight, FiFileText, FiGrid, FiUpload, FiMoreHorizontal, FiPlus, FiTrash2, FiCopy, FiPenTool, FiBriefcase } from "react-icons/fi";
 import Nav from "@components/Nav";
 import { useAppSelector } from "@redux/hooks";
+import { useDispatch } from "react-redux";
+import { addOrUpdatePersonalInfo } from "@redux/resume/features";
 import { deleteResume, duplicateResume, listResumes } from "@utils/api";
 import templatePresets from "@utils/templatePresets";
+import ImportReview from "@components/ImportReview";
 
 const filters = [
     { id: "all", label: "All templates" },
@@ -19,11 +22,14 @@ const templateGroup = (id) => (id % 3 === 1 ? "simple" : id % 3 === 2 ? "modern"
 
 const ResumeMain = () => {
     const token = useAppSelector((state) => state.persistedReducer.auth.access_token);
+    const resumeDraft = useAppSelector((state) => state.persistedReducer.resume);
     const [resumes, setResumes] = useState(null);
     const [listError, setListError] = useState(false);
     const [filter, setFilter] = useState("all");
     const [notice, setNotice] = useState("");
+    const [importFile, setImportFile] = useState(null);
     const importRef = useRef(null);
+    const dispatch = useDispatch();
 
     const loadResumes = async () => {
         if (!token) {
@@ -67,12 +73,42 @@ const ResumeMain = () => {
         () => templatePresets.filter((template) => filter === "all" || templateGroup(template.id) === filter).slice(0, 6),
         [filter]
     );
+    const hasDraft = Boolean(
+        resumeDraft?.personalInfo?.fullName ||
+        resumeDraft?.personalInfo?.email ||
+        (resumeDraft?.professionalExperience || []).length ||
+        (resumeDraft?.education || []).length
+    );
+    const orderedResumes = useMemo(() => {
+        if (!Array.isArray(resumes)) return resumes;
+        if (typeof window === "undefined") return resumes;
+        let recent = [];
+        try { recent = JSON.parse(window.localStorage.getItem("kungacv-recent-resumes")) || []; } catch (error) { recent = []; }
+        const recentIndex = new Map(recent.map((item, index) => [item.id, index]));
+        return [...resumes].sort((a, b) => (recentIndex.get(a.resume_uid) ?? 999) - (recentIndex.get(b.resume_uid) ?? 999));
+    }, [resumes]);
+    const markResumeOpened = (resume) => {
+        let recent = [];
+        try { recent = JSON.parse(window.localStorage.getItem("kungacv-recent-resumes")) || []; } catch (error) { recent = []; }
+        const next = [{ id: resume.resume_uid, title: resume.title, openedAt: new Date().toISOString() }, ...recent.filter((item) => item.id !== resume.resume_uid)].slice(0, 12);
+        window.localStorage.setItem("kungacv-recent-resumes", JSON.stringify(next));
+    };
 
     const handleImport = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        setNotice(`${file.name} is ready to import. Content extraction will keep your formatting choices in the next step.`);
+        setNotice("");
+        setImportFile(file);
         event.target.value = "";
+    };
+    const handleImportApply = ({ fileName, content, lines }) => {
+        const email = content.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)?.[0];
+        const phone = content.match(/(?:\+?\d[\d\s().-]{7,}\d)/)?.[0];
+        const firstLine = lines[0] || "";
+        dispatch(addOrUpdatePersonalInfo({ fullName: firstLine.slice(0, 80) || undefined, email, phone }));
+        window.localStorage.setItem("kungacv-last-import", JSON.stringify({ fileName, importedAt: new Date().toISOString(), content }));
+        setImportFile(null);
+        setNotice(content ? `${fileName} reviewed and added to your local draft. Check the contact card, then continue with your experience.` : `${fileName} validated. Add the content manually in the editor to keep your formatting safe.`);
     };
 
     return (
@@ -87,7 +123,7 @@ const ResumeMain = () => {
                                 <nav className="space-y-1" aria-label="Workspace navigation">
                                     <Link href="/resume" className="workspace-nav-link workspace-nav-link-active"><FiFileText /> Resume</Link>
                                     <Link href="/cover-letter" className="workspace-nav-link"><FiPenTool /> Cover letter</Link>
-                                    <Link href="/resume" className="workspace-nav-link workspace-nav-link-muted"><FiBriefcase /> Job tracker <span className="ml-auto text-[10px] uppercase">Soon</span></Link>
+                                    <Link href="/job-tracker" className="workspace-nav-link"><FiBriefcase /> Job tracker</Link>
                                 </nav>
                                 <div className="mt-12 rounded-2xl bg-white/70 p-4">
                                     <p className="text-sm font-bold">Your first resume is free</p>
@@ -98,6 +134,11 @@ const ResumeMain = () => {
                         </aside>
 
                         <section>
+                            <nav className="workspace-mobile-nav" aria-label="Workspace navigation">
+                                <Link href="/resume" className="workspace-mobile-nav-active"><FiFileText /> Resume</Link>
+                                <Link href="/cover-letter"><FiPenTool /> Cover letter</Link>
+                                <Link href="/job-tracker"><FiBriefcase /> Tracker</Link>
+                            </nav>
                             <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
                                 <div>
                                     <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-brand-700">Your career studio</p>
@@ -106,8 +147,18 @@ const ResumeMain = () => {
                                 </div>
                                 <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-ink-950 bg-transparent px-5 py-3 text-sm font-bold transition hover:bg-ink-950 hover:text-white">
                                     <FiUpload /> Import existing resume
-                                    <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="sr-only" onChange={handleImport} />
+                                    <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt" className="sr-only" onChange={handleImport} />
                                 </label>
+                            </div>
+
+                            <div className="workspace-next-step">
+                                <div className="workspace-next-step-icon">{hasDraft ? "↗" : "+"}</div>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-700">{hasDraft ? "Continue where you left off" : "Your first move"}</p>
+                                    <h2 className="mt-1 text-lg font-extrabold">{hasDraft ? "Keep shaping your resume" : "Pick a look, then make it yours"}</h2>
+                                    <p className="mt-1 text-sm text-ink-500">{hasDraft ? "Your draft is still on this device. Open it to keep adding the details employers scan first." : "Start with a template or import your existing resume. You can change the design later."}</p>
+                                </div>
+                                <Link href="/resume/create" className="workspace-next-step-link">{hasDraft ? "Continue" : "Start building"} <FiArrowUpRight /></Link>
                             </div>
 
                             <div className="mb-7 flex flex-wrap gap-2" role="tablist" aria-label="Template filters">
@@ -138,12 +189,13 @@ const ResumeMain = () => {
                                 {!token && <div className="rounded-2xl border border-dashed border-ink-300 bg-white/60 px-6 py-5 text-sm text-ink-500">Your local draft is always available. <Link href="/login" className="font-bold text-brand-700">Sign in</Link> when you want to sync saved resumes across devices.</div>}
                                 {token && listError && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">Couldn&apos;t load your resumes. Refresh to try again.</p>}
                                 {token && resumes?.length === 0 && !listError && <div className="rounded-2xl border border-dashed border-ink-300 bg-white/60 px-6 py-8 text-center text-sm text-ink-500">No saved resumes yet — choose a template above and your first draft will appear here.</div>}
-                                {token && resumes?.length > 0 && <div className="space-y-3">{resumes.map((resume) => <div key={resume.resume_uid} className="saved-document-card"><Link href={`/resume/create?rid=${resume.resume_uid}`} className="min-w-0 grow"><p className="truncate font-extrabold">{resume.title}</p><p className="mt-1 text-xs text-ink-500">Last edited {new Date(resume.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p></Link><div className="flex items-center gap-1"><button type="button" aria-label={`Duplicate ${resume.title}`} onClick={() => handleDuplicate(resume)} className="icon-button"><FiCopy /></button><button type="button" aria-label={`Delete ${resume.title}`} onClick={() => handleDelete(resume)} className="icon-button text-red-600"><FiTrash2 /></button><FiMoreHorizontal className="ml-2 text-ink-400" /></div></div>)}</div>}
+                                {token && orderedResumes?.length > 0 && <div className="space-y-3">{orderedResumes.map((resume, index) => <div key={resume.resume_uid} className="saved-document-card"><Link href={`/resume/create?rid=${resume.resume_uid}`} onClick={() => markResumeOpened(resume)} className="min-w-0 grow"><p className="truncate font-extrabold">{resume.title}</p><p className="mt-1 text-xs text-ink-500">{index === 0 ? "Recently opened" : "Last edited"} · {new Date(resume.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p></Link><div className="flex items-center gap-1"><button type="button" aria-label={`Duplicate ${resume.title}`} onClick={() => handleDuplicate(resume)} className="icon-button"><FiCopy /></button><button type="button" aria-label={`Delete ${resume.title}`} onClick={() => handleDelete(resume)} className="icon-button text-red-600"><FiTrash2 /></button><FiMoreHorizontal className="ml-2 text-ink-400" /></div></div>)}</div>}
                             </section>
                         </section>
                     </div>
                 </div>
             </main>
+            {importFile && <ImportReview file={importFile} onCancel={() => setImportFile(null)} onApply={handleImportApply} />}
         </>
     );
 };
