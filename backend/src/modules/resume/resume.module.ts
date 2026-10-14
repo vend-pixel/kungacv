@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 // INNER IMPORTS
 import { ResumeController } from './controllers/resume.controller';
 import { ResumeService } from './services/resume.service';
+import { ResumeExportService } from './services/resume-export.service';
 import { Resume, ResumeSchema } from './schema/resume.schema';
 
 @Module({
@@ -26,6 +27,6 @@ import { Resume, ResumeSchema } from './schema/resume.schema';
     MongooseModule.forFeature([{ name: Resume.name, schema: ResumeSchema }]),
   ],
   controllers: [ResumeController],
-  providers: [ResumeService],
+  providers: [ResumeService, ResumeExportService],
 })
 export class ResumeModule {}

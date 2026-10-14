@@ -11,7 +11,7 @@ const Footer = () => {
                     {/* FEEDBACK */}
                     <div className="w-full flex flex-col md:flex-row lg:felx-row xl:flex-row gap-8 md:gap-2 lg:gap-2 xl:gap-2 items-start justify-between mt-10">
                         <div className="w-full">
-                            <label htmlFor="footerUserFeedback" className="text-xl font-bold">
+                            <label htmlFor="userFeedbackArea" className="text-xl font-bold">
                                 Do you have feedback?
                             </label>
                             <div className="mt-2 flex w-full max-w-[500px] items-center border-b-2 border-solid border-ink-700 pb-2">
@@ -24,6 +24,7 @@ const Footer = () => {
                                 ></textarea>
                                 <button
                                     type="submit"
+                                    aria-label="Send feedback"
                                     className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80 text-white bg-brand-600 hover:bg-brand-700 h-9 w-9 min-w-min rounded-full"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 25" className="w-6">
@@ -120,6 +121,7 @@ const Footer = () => {
                                         type="button"
                                         className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80"
                                         id="shareBtn__twitter"
+                                        aria-label="Share KungaCV on X"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" className="w-11 p-3 hover:opacity-80">
                                             <path
@@ -132,6 +134,7 @@ const Footer = () => {
                                         type="button"
                                         className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80"
                                         id="shareBtn__linkedin"
+                                        aria-label="Share KungaCV on LinkedIn"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -156,6 +159,7 @@ const Footer = () => {
                                         type="button"
                                         className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80"
                                         id="shareBtn__reddit"
+                                        aria-label="Share KungaCV on Reddit"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 21" className="w-11 p-3 hover:opacity-80">
                                             <g clip-path="url(#clip0_741_3518)">
@@ -175,6 +179,7 @@ const Footer = () => {
                                         type="button"
                                         className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80"
                                         id="shareBtn__fb"
+                                        aria-label="Share KungaCV on Facebook"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" className="w-11 p-3 hover:opacity-80">
                                             <path
@@ -187,6 +192,7 @@ const Footer = () => {
                                         type="button"
                                         className="flex border-none cursor-pointer appearance-none touch-manipulation items-center justify-center outline-none hover:opacity-80"
                                         id="shareBtn__wa"
+                                        aria-label="Share KungaCV on WhatsApp"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"

@@ -8,7 +8,7 @@ import { cardsData, faqData } from "../../utils/Constants";
 const BottomSection = () => {
     return (
         <div className="pageContainer flex flex-col justify-center items-center mt-10">
-            <h1 className="text-3xl font-semibold">A better way to build your resume</h1>
+            <h2 className="text-3xl font-semibold">A better way to build your resume</h2>
             <p className="text-[rgb(107,114,128)] mt-2">More flexible than templates, easier than using a word processor</p>
 
             <div className="w-[50px] h-[2px] bg-black rounded-sm mt-5 mb-10"></div>

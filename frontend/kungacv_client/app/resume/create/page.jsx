@@ -8,7 +8,7 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { useAppSelector } from "@redux/hooks";
 import { _camelize } from "../../../utils/helpers";
 import { AVAILABLE_COMPONENTS } from "@utils/Constants";
-import { createResume, fetchResume, updateResume } from "@utils/api";
+import { createResume, exportResume, fetchResume, updateResume } from "@utils/api";
 import { trackEvent } from "@utils/analytics";
 import Skills from "@components/ResumeComponents/Skills";
 import Language from "@components/ResumeComponents/Language";
@@ -155,7 +155,7 @@ const CreateResume = () => {
         ? "Not saved — will retry"
         : "Not saved yet";
 
-    const handleDownload = (force = false) => {
+    const handleDownload = async (force = false) => {
         const fullName = resumeData?.personalInfo?.fullName;
         const warnings = [];
         if (!fullName) warnings.push("Add your name so employers know whose resume they are reading.");
@@ -166,6 +166,23 @@ const CreateResume = () => {
             return;
         }
         setExportWarnings([]);
+        if (token) {
+            try {
+                const blob = await exportResume(token, serverPayload.content, isPro);
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = `${(fullName || "kungacv-resume").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                URL.revokeObjectURL(url);
+                trackEvent("pdf_download");
+                return;
+            } catch (error) {
+                // Keep the local browser-print path available if the service is unavailable.
+            }
+        }
         const previousTitle = document.title;
         if (fullName) document.title = `${fullName} - CV`;
 
@@ -303,6 +320,7 @@ const CreateResume = () => {
                                 <button
                                     type="button"
                                     onClick={handleDownload}
+                                    aria-label="Download resume as PDF"
                                     className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:bg-brand-700 min-h-[30px] min-w-[30px] text-white bg-brand-600 h-12 w-12 rounded-full md:hidden"
                                 >
                                     <img src="/download.svg" alt="" className="w-6" />

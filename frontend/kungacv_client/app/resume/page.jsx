@@ -6,7 +6,7 @@ import { FiArrowUpRight, FiFileText, FiGrid, FiUpload, FiMoreHorizontal, FiPlus,
 import Nav from "@components/Nav";
 import { useAppSelector } from "@redux/hooks";
 import { useDispatch } from "react-redux";
-import { addOrUpdatePersonalInfo } from "@redux/resume/features";
+import { hydrateResume } from "@redux/resume/features";
 import { deleteResume, duplicateResume, listResumes } from "@utils/api";
 import templatePresets from "@utils/templatePresets";
 import ImportReview from "@components/ImportReview";
@@ -98,6 +98,12 @@ const ResumeMain = () => {
         setNotice(`${file.name} is ready to import. Content extraction will keep your formatting choices in the next step.`);
         event.target.value = "";
     };
+    const handleImportApply = ({ fileName, content, parsed }) => {
+        dispatch(hydrateResume({ title: parsed.title, content: parsed.content }));
+        window.localStorage.setItem("kungacv-last-import", JSON.stringify({ fileName, importedAt: new Date().toISOString(), version: parsed.version, content }));
+        setImportFile(null);
+        setNotice(`${fileName} parsed into a local draft. Review each section before exporting or signing in to sync it.`);
+    };
 
     return (
         <>
@@ -135,7 +141,7 @@ const ResumeMain = () => {
                                 </div>
                                 <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-ink-950 bg-transparent px-5 py-3 text-sm font-bold transition hover:bg-ink-950 hover:text-white">
                                     <FiUpload /> Import existing resume
-                                    <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt" className="sr-only" onChange={handleImport} />
+                                    <input ref={importRef} type="file" accept=".txt,.json,application/json,text/plain" className="sr-only" onChange={handleImport} />
                                 </label>
                             </div>
 

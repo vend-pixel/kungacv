@@ -60,18 +60,19 @@ const Login = () => {
 
   return (
     <Form onSubmit={handleSubmit} noValidate>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          background: "grey",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-        }}
-      >
+      <main>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            background: "grey",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+        >
         <Card sx={{ minWidth: 300, marginTop: "6em" }}>
           <Box
             sx={{
@@ -92,7 +93,7 @@ const Login = () => {
               color: (theme) => theme.palette.grey[500],
             }}
           >
-            KungaCV Admin Portal
+            <h1 style={{ margin: 0, fontSize: "1rem", fontWeight: 400 }}>KungaCV Admin Portal</h1>
           </Box>
           <Box sx={{ padding: "0 1em 1em 1em" }}>
             <Box sx={{ marginTop: "1em" }}>
@@ -112,6 +113,7 @@ const Login = () => {
                 source="password"
                 label={translate("ra.auth.password")}
                 type="password"
+                autoComplete="current-password"
                 disabled={loading}
                 validate={required()}
                 fullWidth
@@ -131,7 +133,8 @@ const Login = () => {
             </Button>
           </CardActions>
         </Card>
-      </Box>
+        </Box>
+      </main>
     </Form>
   );
 };

@@ -48,8 +48,6 @@ const PersonalInfo = () => {
             convertedPayload[key] = value;
         }
 
-        console.log(convertedPayload["file"]);
-
         dispatchPersonalInfo({ image: convertedPayload["file"] });
     };
 
@@ -77,6 +75,7 @@ const PersonalInfo = () => {
                     <div onClick={toggleOpen}>
                         <button
                             type="button"
+                            aria-label="Edit contact details"
                             className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 min-h-[30px] min-w-[30px] rounded-full text-white gradient absolute top-4 right-4 h-8 w-8"
                         >
                             <img className="w-[1rem]" src="/resume1.svg" alt="resume1" />

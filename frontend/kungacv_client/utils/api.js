@@ -40,3 +40,16 @@ export const updateResume = (token, resumeUid, body) =>
 export const deleteResume = (token, resumeUid) => apiFetch(`/resumes/${resumeUid}`, { method: "DELETE" }, token);
 
 export const duplicateResume = (token, resumeUid) => apiFetch(`/resumes/${resumeUid}/duplicate`, { method: "POST" }, token).then((d) => d.resume);
+
+export const exportResume = async (token, content, isPro = false) => {
+    const response = await fetch(`${API_BASE}/resumes/export`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content, isPro }),
+    });
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.message || `export failed (${response.status})`);
+    }
+    return response.blob();
+};
