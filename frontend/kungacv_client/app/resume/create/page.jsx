@@ -13,7 +13,7 @@ import { trackEvent } from "@utils/analytics";
 import Skills from "@components/ResumeComponents/Skills";
 import Language from "@components/ResumeComponents/Language";
 import Interest from "@components/ResumeComponents/Interests";
-import { applyTemplatePreset, hydrateResume, setEditObj, setActiveResumeUid, setPrevObj, setResumeTitle, setSaveStatus } from "@redux/resume/features";
+import { applyTemplateStyle, hydrateResume, setEditObj, setActiveResumeUid, setPrevObj, setResumeTitle, setSaveStatus } from "@redux/resume/features";
 import AddContent from "@components/ResumeComponents/AddContent";
 import Certificate from "@components/ResumeComponents/Certificate";
 import ProjectComponent from "@components/ResumeComponents/Project";
@@ -27,6 +27,7 @@ import TemplateDemo from "@components/ResumeComponents/TemplateDemo";
 import { AiFillCloseCircle } from "react-icons/ai";
 import Logo from "@components/Logo";
 import templatePresets from "@utils/templatePresets";
+import SectionOrganizer from "@components/ResumeComponents/SectionOrganizer";
 import EditorProgress from "@components/ResumeComponents/EditorProgress";
 
 const CreateResume = () => {
@@ -101,7 +102,7 @@ const CreateResume = () => {
         if (!token || !rid) {
             const templateId = Number(new URLSearchParams(window.location.search).get("template"));
             const template = templatePresets.find((preset) => preset.id === templateId);
-            if (!rid && template) dispatch(applyTemplatePreset(template.data));
+            if (!rid && template) dispatch(applyTemplateStyle(template.data));
             dispatch(setActiveResumeUid(null));
             setReady(true);
             return undefined;
@@ -233,7 +234,7 @@ const CreateResume = () => {
     };
 
     return (
-        <div className="editor-shell min-h-[90vh] w-full flex gap-5 relative bg-[#EEF0F4] px-0 sm:px-10">
+        <div className="editor-shell min-h-[90vh] w-full flex gap-5 relative bg-[#EEF0F4] px-0 sm:h-screen sm:overflow-hidden sm:px-10">
             <a className="skip-link" href="#editor-content">
                 Skip to editor content
             </a>
@@ -241,7 +242,7 @@ const CreateResume = () => {
             <MobileNav currentComponent={currentComponent} setCurrentComponent={setCurrentComponent} setDemo={setDemo} />
 
             {/* left */}
-            <div className="flex grow items-start gap-8 relative">
+            <div className="editor-main-layout flex h-full min-h-0 grow items-stretch gap-8 relative">
                 {/* left */}
                 <nav className="grow-0 sticky top-8 z-[10000] hidden sm:flex flex-col items-center justify-center gap-10 px-2 py-5 rounded-xl shadow-lg bg-gray-50" aria-label="Editor sections">
                     <Link href={"/"}>
@@ -278,7 +279,7 @@ const CreateResume = () => {
                 </nav>
 
                 {/* right */}
-                <main id="editor-content" className="flex grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
+                <main id="editor-content" className="editor-form-scroll min-w-0 flex h-full min-h-0 grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
                     <div className="sticky top-0 rounded-b-lg pt-0 sm:pt-[2rem] bg-[#EEF0F4] z-[6] mb-6 w-full shadow-sm">
                         <div className="sticky top-8 z-[1000]  grid grid-cols-[min-content_1fr_min-content] items-center bg-white px-6 py-3 md:px-8 md:py-4  lg:px-9 lg:py-5 rounded-xl shadow-none sm:shadow-lg">
                             <Link
@@ -286,7 +287,7 @@ const CreateResume = () => {
                                 aria-label="Back to resumes"
                                 className="sidebar:hidden mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-white hover:cursor-pointer hover:opacity-80"
                             >
-                                <img src="/arrow.svg" alt="" className="w-6" />
+                                <span className="editor-back-mark" aria-hidden="true">←</span>
                             </Link>
                             <div className="min-w-0">
                                 {renaming ? (
@@ -320,14 +321,14 @@ const CreateResume = () => {
                                     type="button"
                                     onClick={handleDownload}
                                     aria-label="Download resume as PDF"
-                                    className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 min-h-[30px] min-w-[30px] text-white bg-black h-12 w-12 rounded-full md:hidden"
+                                    className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:bg-brand-700 min-h-[30px] min-w-[30px] text-white bg-brand-600 h-12 w-12 rounded-full md:hidden"
                                 >
                                     <img src="/download.svg" alt="" className="w-6" />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleDownload}
-                                    className="border-none cursor-pointer appearance-none touch-manipulation items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 px-7 py-2 rounded-full font-extrabold h-10 text-[15px] min-w-[120px] text-white bg-black hidden md:flex"
+                                    className="border-none cursor-pointer appearance-none touch-manipulation items-center justify-center focus-visible:outline-blue-600 hover:bg-brand-700 px-7 py-2 rounded-full font-extrabold h-10 text-[15px] min-w-[120px] text-white bg-brand-600 hidden md:flex"
                                 >
                                     Download
                                 </button>
@@ -354,6 +355,7 @@ const CreateResume = () => {
                         {currentComponent === AVAILABLE_COMPONENTS.project && <ProjectComponent setCurrentComponent={setCurrentComponent} />}
                         {currentComponent === AVAILABLE_COMPONENTS.references && <References setCurrentComponent={setCurrentComponent} />}
                         {currentComponent === AVAILABLE_COMPONENTS.personalInfo && <PersonalInfo setCurrentComponent={setCurrentComponent} />}
+                        {currentComponent === AVAILABLE_COMPONENTS.personalInfo && <SectionOrganizer />}
                         {currentComponent === AVAILABLE_COMPONENTS.professionalExperience && (
                             <ProfessionalExperience
                                 setCurrentComponent={setCurrentComponent}
@@ -473,7 +475,7 @@ const CreateResume = () => {
             <aside
                 id="resume-print-root"
                 aria-label="Resume preview"
-                className={`hidden sm:block grow-[4] bg-white min-h-screen h-full my-[2rem] w-1/4 px-[3rem] overflow-hidden break-words sticky top-8${
+                className={`editor-preview-scroll min-w-0 hidden sm:block grow-[4] bg-white min-h-0 my-[2rem] w-1/4 px-[3rem] break-words${
                     isPro ? "" : " is-watermarked"
                 }`}
                 style={previewStyle}

@@ -27,9 +27,7 @@ const ResumeMain = () => {
     const [listError, setListError] = useState(false);
     const [filter, setFilter] = useState("all");
     const [notice, setNotice] = useState("");
-    const [importFile, setImportFile] = useState(null);
     const importRef = useRef(null);
-    const dispatch = useDispatch();
 
     const loadResumes = async () => {
         if (!token) {
@@ -97,8 +95,7 @@ const ResumeMain = () => {
     const handleImport = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        setNotice("");
-        setImportFile(file);
+        setNotice(`${file.name} is ready to import. Content extraction will keep your formatting choices in the next step.`);
         event.target.value = "";
     };
     const handleImportApply = ({ fileName, content, parsed }) => {
