@@ -39,8 +39,6 @@ const CreateResume = () => {
     const isPro = useAppSelector((state) => state.persistedReducer.auth.isPro);
 
     const { spacing, font } = resumeData.customization || {};
-    console.log("CUSTOMIZATION OBJ", resumeData.customization);
-
     const previewStyle = {};
     if (spacing?.value?.tBMargin != null && spacing?.value?.lRMargin != null) {
         previewStyle.padding = `${spacing.value.tBMargin - 9.5}mm ${spacing.value.lRMargin}mm`;
@@ -218,12 +216,8 @@ const CreateResume = () => {
         dispatch(setPrevObj({ key, value: null }));
     };
 
-    useEffect(() => {
-        console.log("RESUME DATA", resumeData);
-    }, []);
-
     return (
-        <div className="editor-shell min-h-[90vh] w-[100vw] flex gap-5 relative bg-[#EEF0F4] px-0 sm:h-screen sm:overflow-hidden sm:px-10">
+        <div className="editor-shell min-h-[90vh] w-full flex gap-5 relative bg-[#EEF0F4] px-0 sm:h-screen sm:overflow-hidden sm:px-10">
             <a className="skip-link" href="#editor-content">
                 Skip to editor content
             </a>
@@ -268,7 +262,7 @@ const CreateResume = () => {
                 </nav>
 
                 {/* right */}
-                <main id="editor-content" className="editor-form-scroll flex h-full min-h-0 grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
+                <main id="editor-content" className="editor-form-scroll min-w-0 flex h-full min-h-0 grow flex-col justify-center items-stretch gap-4" aria-label="Resume editor">
                     <div className="sticky top-0 rounded-b-lg pt-0 sm:pt-[2rem] bg-[#EEF0F4] z-[6] mb-6 w-full shadow-sm">
                         <div className="sticky top-8 z-[1000]  grid grid-cols-[min-content_1fr_min-content] items-center bg-white px-6 py-3 md:px-8 md:py-4  lg:px-9 lg:py-5 rounded-xl shadow-none sm:shadow-lg">
                             <Link
@@ -276,7 +270,7 @@ const CreateResume = () => {
                                 aria-label="Back to resumes"
                                 className="sidebar:hidden mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-white hover:cursor-pointer hover:opacity-80"
                             >
-                                <img src="/arrow.svg" alt="" className="w-6" />
+                                <span className="editor-back-mark" aria-hidden="true">←</span>
                             </Link>
                             <div className="min-w-0">
                                 {renaming ? (
@@ -309,14 +303,14 @@ const CreateResume = () => {
                                 <button
                                     type="button"
                                     onClick={handleDownload}
-                                    className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 min-h-[30px] min-w-[30px] text-white bg-black h-12 w-12 rounded-full md:hidden"
+                                    className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:bg-brand-700 min-h-[30px] min-w-[30px] text-white bg-brand-600 h-12 w-12 rounded-full md:hidden"
                                 >
                                     <img src="/download.svg" alt="" className="w-6" />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleDownload}
-                                    className="border-none cursor-pointer appearance-none touch-manipulation items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 px-7 py-2 rounded-full font-extrabold h-10 text-[15px] min-w-[120px] text-white bg-black hidden md:flex"
+                                    className="border-none cursor-pointer appearance-none touch-manipulation items-center justify-center focus-visible:outline-blue-600 hover:bg-brand-700 px-7 py-2 rounded-full font-extrabold h-10 text-[15px] min-w-[120px] text-white bg-brand-600 hidden md:flex"
                                 >
                                     Download
                                 </button>
@@ -463,7 +457,7 @@ const CreateResume = () => {
             <aside
                 id="resume-print-root"
                 aria-label="Resume preview"
-                className={`editor-preview-scroll hidden sm:block grow-[4] bg-white min-h-0 my-[2rem] w-1/4 px-[3rem] break-words${
+                className={`editor-preview-scroll min-w-0 hidden sm:block grow-[4] bg-white min-h-0 my-[2rem] w-1/4 px-[3rem] break-words${
                     isPro ? "" : " is-watermarked"
                 }`}
                 style={previewStyle}
