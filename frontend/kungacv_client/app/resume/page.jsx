@@ -19,6 +19,7 @@ const templateGroup = (id) => (id % 3 === 1 ? "simple" : id % 3 === 2 ? "modern"
 
 const ResumeMain = () => {
     const token = useAppSelector((state) => state.persistedReducer.auth.access_token);
+    const resumeDraft = useAppSelector((state) => state.persistedReducer.resume);
     const [resumes, setResumes] = useState(null);
     const [listError, setListError] = useState(false);
     const [filter, setFilter] = useState("all");
@@ -67,6 +68,12 @@ const ResumeMain = () => {
         () => templatePresets.filter((template) => filter === "all" || templateGroup(template.id) === filter).slice(0, 6),
         [filter]
     );
+    const hasDraft = Boolean(
+        resumeDraft?.personalInfo?.fullName ||
+        resumeDraft?.personalInfo?.email ||
+        (resumeDraft?.professionalExperience || []).length ||
+        (resumeDraft?.education || []).length
+    );
 
     const handleImport = (event) => {
         const file = event.target.files?.[0];
@@ -98,6 +105,11 @@ const ResumeMain = () => {
                         </aside>
 
                         <section>
+                            <nav className="workspace-mobile-nav" aria-label="Workspace navigation">
+                                <Link href="/resume" className="workspace-mobile-nav-active"><FiFileText /> Resume</Link>
+                                <Link href="/cover-letter"><FiPenTool /> Cover letter</Link>
+                                <span><FiBriefcase /> Tracker <small>Soon</small></span>
+                            </nav>
                             <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
                                 <div>
                                     <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-brand-700">Your career studio</p>
@@ -108,6 +120,16 @@ const ResumeMain = () => {
                                     <FiUpload /> Import existing resume
                                     <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="sr-only" onChange={handleImport} />
                                 </label>
+                            </div>
+
+                            <div className="workspace-next-step">
+                                <div className="workspace-next-step-icon">{hasDraft ? "↗" : "+"}</div>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-700">{hasDraft ? "Continue where you left off" : "Your first move"}</p>
+                                    <h2 className="mt-1 text-lg font-extrabold">{hasDraft ? "Keep shaping your resume" : "Pick a look, then make it yours"}</h2>
+                                    <p className="mt-1 text-sm text-ink-500">{hasDraft ? "Your draft is still on this device. Open it to keep adding the details employers scan first." : "Start with a template or import your existing resume. You can change the design later."}</p>
+                                </div>
+                                <Link href="/resume/create" className="workspace-next-step-link">{hasDraft ? "Continue" : "Start building"} <FiArrowUpRight /></Link>
                             </div>
 
                             <div className="mb-7 flex flex-wrap gap-2" role="tablist" aria-label="Template filters">
