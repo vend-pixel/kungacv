@@ -16,7 +16,11 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
 
     return (
         <div id="certificateWrapper" draggable="false" className="sc-cbTmKc iCNYLv mt-5 shadow-lg rounded-3xl">
-            <div
+            <button
+                type="button"
+                aria-expanded={show}
+                aria-label={`${show ? "Collapse" : "Open"} ${title}`}
+                onClick={toggleShow}
                 className={`flex w-full cursor-pointer justify-between bg-white p-4 md:p-6 rounded-t-3xl ${
                     !show && "rounded-b-3xl transition-all"
                 } border-b-[5px] border-solid border-inputBackground`}
@@ -26,18 +30,11 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
                         <div className="w-full">
                             <div className="w-18">
                                 <div className="relative w-8">
-                                    <button
-                                        className="flex h-10 w-full items-center justify-center rounded-lg bg-gray-200"
-                                        id="headlessui-listbox-button-17"
-                                        type="button"
-                                        aria-haspopup="true"
-                                        aria-expanded="false"
-                                        data-headlessui-state=""
-                                    >
+                                    <div className="flex h-10 w-full items-center justify-center rounded-lg bg-gray-200">
                                         <div className="flex justify-center items-center">
                                             {ADD_CONTENT.filter((c) => title.includes(c.title))[0].icon()}
                                         </div>
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -78,7 +75,7 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex content-end items-center" onClick={toggleShow}>
+                <div className="flex content-end items-center">
                     <div className={`sc-jNHgKk dEeAID transform ${show && "rotate-180"} translate-z-0 transform-origin-center`}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-[1.4em]">
                             <path d="M0 0h24v24H0V0z" fill="none"></path>
@@ -86,7 +83,7 @@ const DropDownComp = ({ list = [], title, handleClick, handleEditObj }) => {
                         </svg>
                     </div>
                 </div>
-            </div>
+            </button>
             {show && (
                 <div className="sc-hZyDwR cSREZu h-auto">
                     <div className="w-full">
