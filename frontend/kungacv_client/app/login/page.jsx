@@ -1,10 +1,9 @@
 "use client";
-
 import Nav from "@components/Nav";
 import { API_BASE } from "@utils/api";
 import { addUserData } from "@redux/auth/features";
 import { useAppSelector } from "@redux/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
@@ -12,130 +11,71 @@ const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-
+    const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const userData = useAppSelector((state) => state.persistedReducer.auth.userData);
-
     const dispatch = useDispatch();
     const router = useRouter();
-
-    if (userData.access_token) router.push("/");
-
-    const handleEmail = (e) => setEmail(e.target.value);
-    const handlePassword = (e) => setPassword(e.target.value);
-
-    const handleSubmit = () => {
-        if (!email || !password) {
-            return alert("Email and password required");
-        }
-
-        const url = API_BASE;
-
-        setLoading(true);
-
-        fetch(`${url}/auth/login`, {
-            headers: {
-                "content-type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ email, password }),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.access_token && data.user) {
-                    dispatch(addUserData(data));
-                    router.push("/");
-                } else {
-                    return alert(data.message);
-                }
-            })
-            .catch((err) => alert(err.message))
-            .finally(() => setLoading(false));
-    };
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get("returnTo") || "/";
 
     useEffect(() => {
-        console.log("userData", userData);
-    }, [userData]);
+        if (userData.access_token) router.replace(returnTo);
+    }, [returnTo, router, userData.access_token]);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const nextErrors = {};
+        if (!email.trim()) nextErrors.email = "Enter the email address you used to create your account.";
+        if (!password) nextErrors.password = "Enter your password to continue.";
+        setFieldErrors(nextErrors);
+        setError("");
+        if (Object.keys(nextErrors).length) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/auth/login`, {
+                headers: { "content-type": "application/json" },
+                method: "POST",
+                body: JSON.stringify({ email: email.trim(), password }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.access_token || !data.user) throw new Error(data.message || "We couldn't sign you in. Check your details and try again.");
+            dispatch(addUserData(data));
+            router.replace(returnTo);
+        } catch (err) {
+            setError(err.message || "We couldn't sign you in. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
             <Nav />
-            <div className="flex flex-col justify-center items-center min-h-[80vh] w-[100vw]">
-                <div className="rounded-[1rem] shadow-md min-h-[calc(100vh-theme(space.16))] w-full max-w-lg bg-white p-10 pt-6 sm:p-12 sm:pt-8 md:min-h-min md:min-w-[500px] md:p-14 md:pt-10 lg:p-16 lg:pt-16 flex flex-col justify-center items-center gap-10">
-                    {/* main heading */}
-                    <h1 className="text-primaryBlack mt-6 flex text-[28px] font-bold sm:mt-10 sm:text-[32px] md:mt-4 md:justify-center md:text-[38px]">
-                        Login
-                    </h1>
-
-                    {/* email input */}
-                    <div className="removeAutocompleteBg relative">
-                        <input
-                            id="emailId"
-                            name="email"
-                            type="email"
-                            className="peer font- h-14 w-full cursor-text appearance-none border-b-2 border-gray-300 bg-white  text-base text-primaryBlack placeholder-transparent focus:outline-none md:text-xl"
-                            placeholder="Enter email"
-                            value={email}
-                            onInput={handleEmail}
-                        />
-                        <label
-                            htmlFor="emailId"
-                            className="absolute left-0 -top-4 cursor-text text-sm text-gray-600 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-4 peer-focus:text-sm   peer-focus:text-gray-600 md:text-base md:peer-placeholder-shown:text-xl md:peer-focus:text-base"
-                        >
-                            <span className="flex items-center space-x-3">
-                                <img src="/mail.svg" alt="mail svg" className="w-5 text-gray-600" />
-                                <span className="font-semibold">Email</span>
-                            </span>
-                        </label>
+            <main className="auth-page flex min-h-[80vh] w-full flex-col items-center justify-center px-4 py-10">
+                <form onSubmit={handleSubmit} noValidate className="w-full max-w-lg rounded-[1rem] bg-white p-8 shadow-md sm:p-12 md:p-14">
+                    <p className="mb-3 text-center text-xs font-extrabold uppercase tracking-[0.18em] text-brand-700">Welcome back</p>
+                    <h1 className="text-center text-[32px] font-bold text-primaryBlack">Log in</h1>
+                    <p className="mx-auto mt-3 max-w-sm text-center text-sm leading-6 text-gray-500">Continue building the document you were working on.</p>
+                    {error && <div className="auth-error mt-6" role="alert">{error}</div>}
+                    <div className="mt-10 space-y-7">
+                        <div>
+                            <label htmlFor="emailId" className="field-label">Email</label>
+                            <input id="emailId" name="email" type="email" autoComplete="email" className={`auth-input ${fieldErrors.email ? "auth-input-error" : ""}`} placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? "email-error" : undefined} />
+                            {fieldErrors.email && <p id="email-error" className="auth-field-error">{fieldErrors.email}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="passwordId" className="field-label">Password</label>
+                            <input id="passwordId" name="password" type="password" autoComplete="current-password" className={`auth-input ${fieldErrors.password ? "auth-input-error" : ""}`} placeholder="Your password" value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(fieldErrors.password)} aria-describedby={fieldErrors.password ? "password-error" : undefined} />
+                            {fieldErrors.password && <p id="password-error" className="auth-field-error">{fieldErrors.password}</p>}
+                        </div>
                     </div>
-
-                    {/* password input */}
-                    <div className="removeAutocompleteBg relative">
-                        <input
-                            id="passwordId"
-                            name="password"
-                            type="password"
-                            className="peer font- h-14 w-full cursor-text appearance-none border-b-2 border-gray-300 bg-white  text-base text-primaryBlack placeholder-transparent focus:outline-none md:text-xl"
-                            placeholder="Enter Password"
-                            value={password}
-                            onInput={handlePassword}
-                        />
-                        <label
-                            htmlFor="passwordId"
-                            className="absolute left-0 -top-4 cursor-text text-sm text-gray-600 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-4 peer-focus:text-sm   peer-focus:text-gray-600 md:text-base md:peer-placeholder-shown:text-xl md:peer-focus:text-base"
-                        >
-                            <span className="flex items-center space-x-3">
-                                <img src="/password.svg" className="w-5 text-gray-600" />
-                                <span className="font-semibold">Password</span>
-                            </span>
-                        </label>
-                    </div>
-
-                    {/* forgot password */}
-                    <div className="mt-4">
-                        <a className="text-base font-bold hover:opacity-80" href="/forgot-password">
-                            Forgot password?
-                        </a>
-                    </div>
-
-                    {/* submit button */}
-                    <button
-                        type="submit"
-                        onClick={handleSubmit}
-                        className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 px-7 py-2 rounded-full font-extrabold h-15 text-[17px] min-w-[180px] text-white bg-brand-600 hover:bg-brand-700 shadow-product w-[300px]"
-                    >
-                        Login
-                    </button>
-
-                    {/* create account */}
-                    <div className="mt-8 flex justify-center">
-                        <a className="text-base font-bold hover:opacity-80" href="/signup">
-                            Create acccount
-                        </a>
-                    </div>
-                </div>
-            </div>
+                    <div className="mt-4 text-right"><a className="text-sm font-bold text-brand-700 hover:underline" href="/forgot-password">Forgot password?</a></div>
+                    <button type="submit" disabled={loading} className="mt-8 flex h-14 w-full items-center justify-center rounded-full bg-brand-600 px-7 text-[17px] font-extrabold text-white shadow-product transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Signing in…" : "Log in"}</button>
+                    <p className="mt-8 text-center text-sm text-gray-600">New to KungaCV? <a className="font-bold text-primaryBlack hover:underline" href={`/signup?returnTo=${encodeURIComponent(returnTo)}`}>Create an account</a></p>
+                </form>
+            </main>
         </>
     );
 };
-
 export default LoginPage;

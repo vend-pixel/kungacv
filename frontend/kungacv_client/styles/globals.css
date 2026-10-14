@@ -410,6 +410,19 @@ body {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .field-input:focus { border-color: #0070f0; box-shadow: 0 0 0 3px rgba(0, 112, 240, 0.12); }
+.auth-page { background: #f5f4f0; }
+.auth-input { width: 100%; border: 1px solid #deddd6; border-radius: 0.7rem; background: #faf9f5; padding: 0.85rem 1rem; color: #0a0a0b; font-size: 1rem; outline: none; }
+.auth-input:focus { border-color: #0070f0; box-shadow: 0 0 0 3px rgba(0, 112, 240, 0.12); }
+.auth-input-error { border-color: #d95b5b; }
+.auth-error { display: flex; gap: 0.5rem; border: 1px solid #f0bcbc; border-radius: 0.75rem; background: #fff3f3; padding: 0.8rem 0.9rem; color: #a32929; font-size: 0.82rem; line-height: 1.45; }
+.auth-field-error { margin-top: 0.4rem; color: #a32929; font-size: 0.75rem; }
+.auth-check { border-radius: 999px; background: #f1f0ec; padding: 0.35rem 0.45rem; text-align: center; color: #8a8a93; }
+.auth-check-on { background: #e9f7ef; color: #15733b; }
+.import-review-backdrop { position: fixed; inset: 0; z-index: 25000; display: grid; place-items: center; background: rgba(10, 10, 11, 0.58); padding: 1rem; }
+.import-review, .export-check { width: min(100%, 650px); max-height: calc(100vh - 2rem); overflow-y: auto; border-radius: 1.5rem; background: #ffffff; padding: 1.4rem; box-shadow: 0 25px 80px rgba(10, 10, 11, 0.25); }
+.import-review-file { display: flex; align-items: center; gap: 0.7rem; margin-top: 1.3rem; border: 1px solid #deddd6; border-radius: 0.85rem; background: #faf9f5; padding: 0.8rem; }
+.import-review-file small { color: #8a8a93; font-size: 0.72rem; }
+.import-review-note { border-radius: 0.8rem; background: #eef5ff; padding: 0.85rem; color: #31527c; font-size: 0.8rem; line-height: 1.5; }
 .preview-stage { min-width: 0; }
 .cover-letter-paper {
     min-height: 920px;

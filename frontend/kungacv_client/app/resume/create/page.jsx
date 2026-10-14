@@ -56,6 +56,7 @@ const CreateResume = () => {
     const [ready, setReady] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [draftTitle, setDraftTitle] = useState("");
+    const [exportWarnings, setExportWarnings] = useState([]);
     const latestRef = useRef(resumeData);
     latestRef.current = resumeData;
     const chainRef = useRef(Promise.resolve());
@@ -155,8 +156,17 @@ const CreateResume = () => {
         ? "Not saved — will retry"
         : "Not saved yet";
 
-    const handleDownload = () => {
+    const handleDownload = (force = false) => {
         const fullName = resumeData?.personalInfo?.fullName;
+        const warnings = [];
+        if (!fullName) warnings.push("Add your name so employers know whose resume they are reading.");
+        if (!resumeData?.personalInfo?.email) warnings.push("Add an email address so employers can contact you.");
+        if (!(resumeData?.professionalExperience || []).length && !(resumeData?.projects || []).length) warnings.push("Add experience or a project to show what you can contribute.");
+        if (warnings.length && !force) {
+            setExportWarnings(warnings);
+            return;
+        }
+        setExportWarnings([]);
         const previousTitle = document.title;
         if (fullName) document.title = `${fullName} - CV`;
 
@@ -469,11 +479,13 @@ const CreateResume = () => {
                         <div className={`bg-white scale-[0.5] h-auto my-[2rem] w-[40rem] px-[3rem] overflow-hidden break-words`} style={previewStyle}>
                             <TemplateDemo resumeData={resumeData} />
                         </div>
+                        <div className="absolute bottom-5 left-5 right-5 flex justify-center gap-3"><button type="button" className="rounded-full bg-white px-4 py-3 text-sm font-bold" onClick={() => setDemo(false)}>Back to edit</button><button type="button" className="rounded-full bg-brand-600 px-4 py-3 text-sm font-bold text-white" onClick={() => handleDownload()}>Download</button></div>
                     </div>
                 </div>
             )}
 
             {addContent && <AddContent setAddContent={setAddContent} handleCurrentComponent={handleCurrentComponent} />}
+            {exportWarnings.length > 0 && <div className="import-review-backdrop" role="presentation"><section className="export-check" role="dialog" aria-modal="true" aria-labelledby="export-check-title"><p className="eyebrow">Export check</p><h2 id="export-check-title" className="mt-1 text-2xl font-extrabold">Your resume can still download</h2><p className="mt-2 text-sm leading-6 text-ink-500">Before you send it, consider these quick improvements:</p><ul className="mt-5 space-y-3 text-sm text-ink-700">{exportWarnings.map((warning) => <li key={warning} className="flex gap-2"><span className="text-brand-600">•</span>{warning}</li>)}</ul><div className="mt-6 flex flex-wrap justify-end gap-3"><button type="button" className="rounded-full border border-ink-300 px-5 py-3 text-sm font-bold" onClick={() => setExportWarnings([])}>Keep editing</button><button type="button" className="rounded-full bg-ink-950 px-5 py-3 text-sm font-bold text-white" onClick={() => handleDownload(true)}>Download anyway</button></div></section></div>}
         </div>
     );
 };

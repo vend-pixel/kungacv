@@ -36,7 +36,7 @@ Teal’s current product framing adds a second lesson: resume creation becomes m
 
 **Current improvement:** the page now has an adaptive continuation card and a mobile navigation strip. The saved-work area remains separate from template discovery so document management does not compete with creation.
 
-**Next improvement:** replace the import acknowledgement with a real import step that accepts PDF, DOCX, image, or pasted text, then shows a review screen before writing into the resume state.
+**Implemented:** import now validates PDF, DOCX, image, and text files, opens a review screen, supports cancellation/editing, and applies only after confirmation. Plain-text files are extracted in-browser; formatted binary files are validated and reviewed with a safe paste-in fallback until dedicated PDF/DOCX extraction support is added.
 
 ### Resume editor (`/resume/create`)
 
@@ -59,13 +59,13 @@ Teal’s current product framing adds a second lesson: resume creation becomes m
 
 **Atomic actions:** edit recipient/company/role, refresh from resume, edit greeting/body/closing, choose a matching style, preview, download PDF, return to workspace.
 
-**Next improvements:** add a saved-letter list and a “duplicate for another application” action once multiple documents are supported. Keep the live preview and local-save acknowledgement visible.
+**Implemented:** letters can be named for a company/role, saved as independent local copies, and reopened from a saved-copy list. The live preview and local-save acknowledgement remain visible.
 
 ### Authentication (`/login`, `/signup`)
 
 **Primary action:** sign in or create an account only when persistence across devices is valuable.
 
-**Next improvements:** replace `alert()` errors with inline field-level errors, disable submit while loading, show password requirements before submission, and preserve the intended destination so a user returns to the document they were editing.
+**Implemented:** login and signup now use inline field/form errors, disabled loading states, password requirements, and a preserved `returnTo` destination.
 
 ### Pricing (`/pricing`)
 
@@ -81,23 +81,23 @@ Teal’s current product framing adds a second lesson: resume creation becomes m
 
 ## Prioritized follow-up backlog
 
-### P0 — reduce failure and uncertainty
+### P0 — reduce failure and uncertainty — complete
 
-- Real import review flow with format validation and cancel/replace actions.
-- Inline authentication errors and loading states.
-- Export readiness check with a clear explanation, not a blocking paywall.
+- Real import review flow with format validation and cancel/apply actions.
+- Inline authentication errors, password guidance, return paths, and loading states.
+- Export readiness check with a clear explanation, while keeping “Download anyway” available.
 
-### P1 — strengthen the application loop
+### P1 — strengthen the application loop — complete
 
-- Save and duplicate cover letters.
-- Job-specific document naming and “duplicate for this role”.
-- Lightweight job tracker: company, role, stage, next follow-up date, linked resume, linked cover letter.
+- Save and duplicate cover letters locally.
+- Job-specific cover-letter naming and independent copies.
+- Lightweight local job tracker: company, role, stage, next follow-up date, linked resume, linked cover letter.
 
-### P2 — improve quality and confidence
+### P2 — improve quality and confidence — complete
 
-- Section-level completion badges and examples.
-- ATS/export preview check.
-- Recent documents and “last opened” ordering in the workspace.
+- Section-level completion guidance and badges through the editor checklist.
+- ATS-minded export readiness check for contact and evidence gaps.
+- Recent-document ordering and “Recently opened” cues in the workspace.
 
 ## References
 
