@@ -1,16 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Footer from "@components/LandingPage/Footer";
-import Nav from "@components/Nav";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { FiArrowUpRight, FiFileText, FiGrid, FiUpload, FiMoreHorizontal, FiPlus, FiTrash2, FiCopy, FiPenTool, FiBriefcase } from "react-icons/fi";
+import Nav from "@components/Nav";
 import { useAppSelector } from "@redux/hooks";
 import { deleteResume, duplicateResume, listResumes } from "@utils/api";
+import templatePresets from "@utils/templatePresets";
+
+const filters = [
+    { id: "all", label: "All templates" },
+    { id: "simple", label: "Simple", icon: <FiFileText /> },
+    { id: "modern", label: "Modern", icon: <FiGrid /> },
+    { id: "creative", label: "Creative", icon: <FiPenTool /> },
+];
+
+const templateGroup = (id) => (id % 3 === 1 ? "simple" : id % 3 === 2 ? "modern" : "creative");
 
 const ResumeMain = () => {
     const token = useAppSelector((state) => state.persistedReducer.auth.access_token);
-    const [resumes, setResumes] = useState(null); // null = not loaded yet
+    const [resumes, setResumes] = useState(null);
     const [listError, setListError] = useState(false);
+    const [filter, setFilter] = useState("all");
+    const [notice, setNotice] = useState("");
+    const importRef = useRef(null);
 
     const loadResumes = async () => {
         if (!token) {
@@ -50,132 +63,87 @@ const ResumeMain = () => {
         }
     };
 
-    const formatEdited = (iso) => {
-        try {
-            return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-        } catch (e) {
-            return null;
-        }
+    const filteredTemplates = useMemo(
+        () => templatePresets.filter((template) => filter === "all" || templateGroup(template.id) === filter).slice(0, 6),
+        [filter]
+    );
+
+    const handleImport = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setNotice(`${file.name} is ready to import. Content extraction will keep your formatting choices in the next step.`);
+        event.target.value = "";
     };
 
     return (
         <>
             <Nav />
-            <section className="py-[6rem] bg-[#EEF0F4]">
-                <div className="flex justify-center items-center w-[100vw] min-h-[80vh] ">
-                    <div className="flex flex-col justify-center items-center gap-20">
-                        <div className="flex flex-col md:flex-row lg:flex-row xl:flex-row justify-start items-center ml-auto mr-auto">
-                            <div className="relative w-[100px] md:w-[120px] lg:order-2 lg:w-[310px] xl:w-[340px]">
-                                <img src="/blob.svg" alt="blob" className="absolute left-0 right-0 top-0 z-10 w-full" />
-                                <div className="relative z-10 mt-2 flex w-full items-center justify-center">
-                                    {/* svg2 */}
-                                    <img src="/svg2.svg" alt="svg2" className="ml-2 w-4/5 lg:px-1" />
+            <main className="workspace-page min-h-screen bg-[#F5F4F0] text-ink-950">
+                <div className="pageContainer py-8 md:py-12">
+                    <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+                        <aside className="hidden lg:block">
+                            <div className="sticky top-8 rounded-[1.5rem] border border-[#deddd6] bg-[#e9e7df] p-4">
+                                <p className="px-3 pb-4 text-xs font-bold uppercase tracking-[0.18em] text-ink-500">Workspace</p>
+                                <nav className="space-y-1" aria-label="Workspace navigation">
+                                    <Link href="/resume" className="workspace-nav-link workspace-nav-link-active"><FiFileText /> Resume</Link>
+                                    <Link href="/cover-letter" className="workspace-nav-link"><FiPenTool /> Cover letter</Link>
+                                    <Link href="/resume" className="workspace-nav-link workspace-nav-link-muted"><FiBriefcase /> Job tracker <span className="ml-auto text-[10px] uppercase">Soon</span></Link>
+                                </nav>
+                                <div className="mt-12 rounded-2xl bg-white/70 p-4">
+                                    <p className="text-sm font-bold">Your first resume is free</p>
+                                    <p className="mt-2 text-xs leading-5 text-ink-500">Build, preview and export without a credit card.</p>
+                                    <Link href="/resume/create" className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-brand-700">Start building <FiArrowUpRight /></Link>
                                 </div>
                             </div>
+                        </aside>
 
-                            <div className="mt-10 w-full md:mt-12 lg:mt-8">
-                                <h1 className="text-center text-4xl font-bold md:text-5xl lg:text-left lg:text-5xl">Let&apos;s boost your career</h1>
-                                <h2 className="mt-4 text-center text-lg text-gray-500 md:text-xl lg:text-left lg:text-xl">
-                                    Showcase your skills and talents. Make a great first impression.
-                                </h2>
-                            </div>
-                        </div>
-
-                        {/*RESUME CARD*/}
-                        <div className="ml-auto mr-auto w-full">
-                            <h2 className="mx-5 text-2xl font-bold md:mx-0 md:text-3xl lg:text-4xl">Resumes</h2>
-                            <p className="mx-5 text-sm text-gray-500 md:mx-0 md:mt-3 md:text-base">
-                                Your first resume – 100% free, forever, all features, unlimited downloads, yes really.
-                            </p>
-                            <div className="mt-6 grid grid-cols-1 justify-start gap-12 md:mt-10 md:grid-cols-[min-content_1fr]">
-                                <div className="hidden h-[200px] w-[200px] items-center justify-center rounded-full border-[10px] border-solid border-white md:flex cursor-pointer hover:opacity-80">
-                                    <img src="/svg3.svg" alt="svg3" className="w-20" />
-                                </div>
-
-                                {/* BOTTOM SECTION */}
+                        <section>
+                            <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
                                 <div>
-                                    <Link
-                                        className=" flex items-center rounded-lg px-5 relative w-full min-h-[100px]  border border-dashed border-gray-300 md:h-20 hover:border-brand-400 transition-colors"
-                                        href="/resume/create"
-                                    >
-                                        <div className="mr-3 grow">
-                                            <p className="text-lg font-bold md:text-xl ">New resume</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 min-h-[30px] min-w-[30px] text-white h-9 w-20 shrink-0 rounded-full sm:hidden"
-                                        >
-                                            <img src="/svg5.svg" alt="svg5" className="w-10" />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="border-none cursor-pointer appearance-none touch-manipulation items-center justify-center focus-visible:outline-blue-600 hover:opacity-80 p-2 rounded-full font-extrabold h-10 text-[15px] min-w-[120px] text-white bg-black hidden w-auto sm:flex"
-                                        >
-                                            <span className="flex items-center justify-center mr-2 -ml-1 md:mr-3 md:-ml-[6px] pb-0 md:pb-0">
-                                                <img src="/svg6.svg" alt="svg6" />
-                                            </span>
-                                            Create
-                                        </button>
-                                        <div className="rounded-full bg-brand-600 hover:bg-brand-700 px-3 text-sm font-bold text-white absolute left-8 top-full z-[6] -mt-2 flex w-min shrink space-x-1 sm:left-12 md:-left-8 md:top-0 md:mt-3">
-                                            <span className="">free</span>
-                                            <span className="ml-1 mt-1 -mr-[3px] h-1 w-1 rounded-full bg-white"></span>
-                                        </div>
-                                    </Link>
-
-                                    {/* saved resumes */}
-                                    {!token && (
-                                        <p className="mt-5 text-sm text-gray-500">
-                                            <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700">
-                                                Sign in
-                                            </Link>{" "}
-                                            to save resumes to your account.
-                                        </p>
-                                    )}
-                                    {token && listError && (
-                                        <p className="mt-5 text-sm text-red-600">Couldn&apos;t load your resumes. Refresh to try again.</p>
-                                    )}
-                                    {token && resumes && resumes.length > 0 && (
-                                        <div className="mt-5 space-y-3">
-                                            {resumes.map((resume) => {
-                                                const edited = formatEdited(resume.updatedAt);
-                                                return (
-                                                    <div
-                                                        key={resume.resume_uid}
-                                                        className="group flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-3 min-h-[72px] hover:border-brand-400 transition-colors"
-                                                    >
-                                                        <Link href={`/resume/create?rid=${resume.resume_uid}`} className="grow min-w-0">
-                                                            <p className="truncate text-lg font-bold">{resume.title}</p>
-                                                            {edited && <p className="text-xs text-gray-500">Edited {edited}</p>}
-                                                        </Link>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDuplicate(resume)}
-                                                            className="shrink-0 rounded-full border border-gray-200 px-4 py-1.5 text-sm font-semibold text-gray-600 hover:border-gray-400 hover:text-black transition-colors"
-                                                        >
-                                                            Duplicate
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDelete(resume)}
-                                                            className="shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                    {token && resumes && resumes.length === 0 && !listError && (
-                                        <p className="mt-5 text-sm text-gray-500">No saved resumes yet — your first save will appear here.</p>
-                                    )}
+                                    <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-brand-700">Your career studio</p>
+                                    <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Start building your resume</h1>
+                                    <p className="mt-3 max-w-2xl text-base text-ink-500">Choose a design you like. Add your story. Switch templates whenever you want.</p>
                                 </div>
+                                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-ink-950 bg-transparent px-5 py-3 text-sm font-bold transition hover:bg-ink-950 hover:text-white">
+                                    <FiUpload /> Import existing resume
+                                    <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="sr-only" onChange={handleImport} />
+                                </label>
                             </div>
-                        </div>
+
+                            <div className="mb-7 flex flex-wrap gap-2" role="tablist" aria-label="Template filters">
+                                {filters.map((item) => (
+                                    <button key={item.id} type="button" role="tab" aria-selected={filter === item.id} onClick={() => setFilter(item.id)} className={`template-filter ${filter === item.id ? "template-filter-active" : ""}`}>
+                                        {item.icon} {item.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {notice && <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800" role="status">{notice}</div>}
+
+                            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                                <Link href="/resume/create" className="template-card template-card-create group">
+                                    <div className="template-create-paper"><FiPlus className="text-3xl" /></div>
+                                    <div className="flex items-center justify-between pt-4"><div><p className="font-extrabold">Start from scratch</p><p className="mt-1 text-sm text-ink-500">Blank, flexible and yours</p></div><FiArrowUpRight className="text-xl transition group-hover:translate-x-1 group-hover:-translate-y-1" /></div>
+                                </Link>
+                                {filteredTemplates.map((template) => (
+                                    <Link key={template.id} href={`/resume/create?template=${template.id}`} className="template-card group">
+                                        <div className="template-image-wrap"><img src={`/templates/template-${String(template.id).padStart(2, "0")}.webp`} alt={`${template.name} resume template`} /><span className="template-use">Use template <FiArrowUpRight /></span></div>
+                                        <div className="flex items-center justify-between pt-4"><div><p className="font-extrabold">{template.name}</p><p className="mt-1 text-sm text-ink-500">Customizable layout</p></div><FiArrowUpRight className="text-xl transition group-hover:translate-x-1 group-hover:-translate-y-1" /></div>
+                                    </Link>
+                                ))}
+                            </div>
+
+                            <section className="mt-14" aria-labelledby="saved-heading">
+                                <div className="mb-5 flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-[0.18em] text-ink-500">Saved work</p><h2 id="saved-heading" className="mt-2 text-2xl font-extrabold">Your resumes</h2></div><Link href="/cover-letter" className="hidden items-center gap-2 text-sm font-bold text-brand-700 md:flex">Create a matching cover letter <FiArrowUpRight /></Link></div>
+                                {!token && <div className="rounded-2xl border border-dashed border-ink-300 bg-white/60 px-6 py-5 text-sm text-ink-500">Your local draft is always available. <Link href="/login" className="font-bold text-brand-700">Sign in</Link> when you want to sync saved resumes across devices.</div>}
+                                {token && listError && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">Couldn&apos;t load your resumes. Refresh to try again.</p>}
+                                {token && resumes?.length === 0 && !listError && <div className="rounded-2xl border border-dashed border-ink-300 bg-white/60 px-6 py-8 text-center text-sm text-ink-500">No saved resumes yet — choose a template above and your first draft will appear here.</div>}
+                                {token && resumes?.length > 0 && <div className="space-y-3">{resumes.map((resume) => <div key={resume.resume_uid} className="saved-document-card"><Link href={`/resume/create?rid=${resume.resume_uid}`} className="min-w-0 grow"><p className="truncate font-extrabold">{resume.title}</p><p className="mt-1 text-xs text-ink-500">Last edited {new Date(resume.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p></Link><div className="flex items-center gap-1"><button type="button" aria-label={`Duplicate ${resume.title}`} onClick={() => handleDuplicate(resume)} className="icon-button"><FiCopy /></button><button type="button" aria-label={`Delete ${resume.title}`} onClick={() => handleDelete(resume)} className="icon-button text-red-600"><FiTrash2 /></button><FiMoreHorizontal className="ml-2 text-ink-400" /></div></div>)}</div>}
+                            </section>
+                        </section>
                     </div>
                 </div>
-            </section>
-            <Footer />
+            </main>
         </>
     );
 };

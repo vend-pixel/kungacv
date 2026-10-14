@@ -33,7 +33,10 @@ const Nav = () => {
                     <Link href="/">
                         <Logo variant="dark" size="md" />
                     </Link>
-                    <nav className="center-flex gap-4 text-[.85rem] font-extrabold">
+                    <nav className="center-flex gap-2 text-[.85rem] font-extrabold md:gap-4">
+                        <Link href="/cover-letter" className="hidden rounded-full px-3 py-2 text-white/80 transition hover:bg-ink-800 hover:text-white md:flex">
+                            Cover letter
+                        </Link>
                         {!user.access_token ? (
                             <>
                                 <Link
