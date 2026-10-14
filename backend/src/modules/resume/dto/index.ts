@@ -1,5 +1,5 @@
 // THIRD PARTY IMPORTS
-import { IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateResumeDto {
   @IsOptional()
@@ -30,4 +30,13 @@ export class UpdateResumeDto {
 
   @IsObject()
   content: Record<string, any>;
+}
+
+export class ExportResumeDto {
+  @IsObject()
+  content: Record<string, any>;
+
+  @IsOptional()
+  @IsBoolean()
+  isPro?: boolean;
 }

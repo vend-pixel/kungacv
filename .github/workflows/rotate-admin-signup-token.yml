@@ -1,0 +1,48 @@
+name: Rotate admin signup token
+
+on:
+  schedule:
+    # Monthly rotation at 03:17 UTC on the first day of the month.
+    - cron: "17 3 1 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate Render configuration without changing the service
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-signup-token-rotation
+  cancel-in-progress: false
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+      RENDER_API_BASE_URL: https://api.render.com/v1
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate Render rotation configuration
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: npm run admin:rotate-token -- --render --dry-run
+
+      - name: Rotate token and queue Render deploy
+        if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
+        run: npm run admin:rotate-token -- --render --confirm

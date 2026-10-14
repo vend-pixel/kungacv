@@ -42,6 +42,49 @@ Non-secret defaults are defined in the Blueprint. The following values must be s
 
 Use a separate Mongo database, JWT secret, and PayChangu test credentials for staging. Never copy production secrets into GitHub Actions or local issue comments.
 
+### Create the first administrator
+
+The API keeps `/admin/signup` disabled unless `ADMIN_SIGNUP_TOKEN` is configured. After the API is healthy, run the one-time helper from `backend/` with secrets supplied only through the environment:
+
+```bash
+cd backend
+ADMIN_SIGNUP_TOKEN='use-the-render-value' \
+ADMIN_EMAIL='admin@example.com' \
+ADMIN_PASSWORD='use-a-unique-password' \
+ADMIN_NAME='KungaCV Administrator' \
+API_URL='https://api.example.com' \
+npm run admin:bootstrap
+```
+
+Use `npm run admin:bootstrap -- --dry-run` to validate the variables without sending a request. The helper never prints the signup token, password, or returned access token. After the administrator is created, rotate the token and restart the API so the bootstrap endpoint is disabled with the old value:
+
+```bash
+# Local .env rotation; restart the API afterward.
+npm run admin:rotate-token
+
+# Render rotation; updates the service variable and queues a deploy.
+RENDER_API_KEY='read-from-your-secret-manager' \
+RENDER_SERVICE_ID='srv-xxxxxxxx' \
+npm run admin:rotate-token -- --render --confirm
+```
+
+Use `--dry-run` with either mode to validate the target without changing it. Render mode requires `--confirm` because it changes a live service credential and starts a deployment. The rotation helper never prints the generated token or Render API key. A repeated bootstrap run for the same email is expected to fail rather than overwrite the existing account.
+
+### Scheduled token rotation
+
+The repository includes [`.github/workflows/rotate-admin-signup-token.yml`](../.github/workflows/rotate-admin-signup-token.yml). It rotates the production token on the first day of each month at 03:17 UTC, updates the Render service variable, and queues a deploy. Configure `RENDER_API_KEY` and `RENDER_SERVICE_ID` as GitHub Actions **repository or environment secrets**; never put either value in workflow YAML, repository variables, commit messages, or logs. The workflow requests only `contents: read` and serializes rotations so two runs cannot overlap.
+
+Use the manual workflow dispatch with `dry_run=true` first. It validates the Render API URL, service ID, and credentials are present without changing the service. Set `dry_run=false` only after reviewing the run output. The scheduled path performs the confirmed rotation automatically. Prefer a protected GitHub environment such as `production-admin-rotation` with required reviewers if the organization wants human approval before each live rotation.
+
+Environment-variable review rules:
+
+- Keep `sync: false` declarations in `render.yaml`; values belong in Render’s encrypted environment settings or an approved secret manager.
+- Use separate Render service IDs, databases, JWT secrets, payment credentials, and signup tokens for staging and production.
+- Do not echo environment variables, serialize `process.env`, or include request headers in CI output. GitHub masks registered secrets, but masking is not a substitute for avoiding logs.
+- Grant the Render API key only the minimum service-management scope required and rotate that key independently.
+- After a failed rotation, confirm whether the Render variable update succeeded before retrying; a deploy failure can leave the new value stored but not loaded by the running service.
+- Revoke the old token by completing a successful deploy, then verify `/admin/signup` rejects the old value and accepts no signup request without the new value.
+
 Template preview uploads use Cloudinary. Enter `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` as encrypted Render environment variables for each API service. The API stores only the returned secure URL and public ID in MongoDB; Cloudinary secrets never reach the browser. Preview uploads are limited to 5 MB and JPEG, PNG, or WebP images. Use separate Cloudinary folders or credentials for staging and production when practical.
 
 ### Configure Cloudinary for the production API

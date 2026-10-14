@@ -8,19 +8,25 @@ import {
   Post,
   Put,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 // INNER IMPORTS
-import { CreateResumeDto, UpdateResumeDto } from '../dto';
+import { CreateResumeDto, ExportResumeDto, UpdateResumeDto } from '../dto';
 import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { ResumeService } from '../services/resume.service';
+import { ResumeExportService } from '../services/resume-export.service';
 import { CustomRequest } from 'src/shared/interfaces';
 
 @Controller('resumes')
 @UseGuards(AuthGuard)
 export class ResumeController {
-  constructor(private resumeService: ResumeService) {}
+  constructor(
+    private resumeService: ResumeService,
+    private resumeExportService: ResumeExportService,
+  ) {}
 
   @Get('/')
   async list(@Req() req: CustomRequest) {
@@ -30,6 +36,25 @@ export class ResumeController {
   @Post('/')
   async create(@Body() dto: CreateResumeDto, @Req() req: CustomRequest) {
     return { resume: await this.resumeService.create(req.user, dto) };
+  }
+
+  @Post('/export')
+  async export(
+    @Body() dto: ExportResumeDto,
+    @Req() req: CustomRequest,
+    @Res() response: Response,
+  ) {
+    const pdf = await this.resumeExportService.renderPdf(
+      dto.content,
+      Boolean(dto.isPro && req.user?.isPro),
+    );
+    response.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="kungacv-resume.pdf"',
+      'Content-Length': pdf.length,
+      'Cache-Control': 'no-store',
+    });
+    response.end(pdf);
   }
 
   @Get('/:resumeUid')

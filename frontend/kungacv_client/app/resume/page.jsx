@@ -6,7 +6,7 @@ import { FiArrowUpRight, FiFileText, FiGrid, FiUpload, FiMoreHorizontal, FiPlus,
 import Nav from "@components/Nav";
 import { useAppSelector } from "@redux/hooks";
 import { useDispatch } from "react-redux";
-import { addOrUpdatePersonalInfo } from "@redux/resume/features";
+import { hydrateResume } from "@redux/resume/features";
 import { deleteResume, duplicateResume, listResumes } from "@utils/api";
 import templatePresets from "@utils/templatePresets";
 import ImportReview from "@components/ImportReview";
@@ -101,14 +101,11 @@ const ResumeMain = () => {
         setImportFile(file);
         event.target.value = "";
     };
-    const handleImportApply = ({ fileName, content, lines }) => {
-        const email = content.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)?.[0];
-        const phone = content.match(/(?:\+?\d[\d\s().-]{7,}\d)/)?.[0];
-        const firstLine = lines[0] || "";
-        dispatch(addOrUpdatePersonalInfo({ fullName: firstLine.slice(0, 80) || undefined, email, phone }));
-        window.localStorage.setItem("kungacv-last-import", JSON.stringify({ fileName, importedAt: new Date().toISOString(), content }));
+    const handleImportApply = ({ fileName, content, parsed }) => {
+        dispatch(hydrateResume({ title: parsed.title, content: parsed.content }));
+        window.localStorage.setItem("kungacv-last-import", JSON.stringify({ fileName, importedAt: new Date().toISOString(), version: parsed.version, content }));
         setImportFile(null);
-        setNotice(content ? `${fileName} reviewed and added to your local draft. Check the contact card, then continue with your experience.` : `${fileName} validated. Add the content manually in the editor to keep your formatting safe.`);
+        setNotice(`${fileName} parsed into a local draft. Review each section before exporting or signing in to sync it.`);
     };
 
     return (
@@ -147,7 +144,7 @@ const ResumeMain = () => {
                                 </div>
                                 <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-ink-950 bg-transparent px-5 py-3 text-sm font-bold transition hover:bg-ink-950 hover:text-white">
                                     <FiUpload /> Import existing resume
-                                    <input ref={importRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt" className="sr-only" onChange={handleImport} />
+                                    <input ref={importRef} type="file" accept=".txt,.json,application/json,text/plain" className="sr-only" onChange={handleImport} />
                                 </label>
                             </div>
 

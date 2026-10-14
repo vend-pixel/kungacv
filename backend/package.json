@@ -23,7 +23,9 @@
     "test:cov": "jest --coverage --passWithNoTests",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "load:test": "ts-node -r tsconfig-paths/register scripts/load-test.ts"
+    "load:test": "ts-node -r tsconfig-paths/register scripts/load-test.ts",
+    "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "admin:rotate-token": "node scripts/rotate-admin-signup-token.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -44,6 +46,7 @@
     "nanoid": "^3.3.6",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
+    "puppeteer-core": "^24.26.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"
   },

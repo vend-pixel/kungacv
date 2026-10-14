@@ -479,7 +479,7 @@ textarea:focus-visible {
     .workspace-mobile-nav small { font-size: 0.55rem; text-transform: uppercase; }
     .workspace-next-step { align-items: flex-start; flex-wrap: wrap; }
     .workspace-next-step-link { margin-left: 3.5rem; }
-    .editor-action-row { margin: 0 -0.25rem; }
+    .editor-action-row { margin: 0; }
     .editor-action-label { display: none; }
     .editor-progress { padding: 1rem; }
     .editor-progress-heading h2 { max-width: 12rem; }
