@@ -28,6 +28,7 @@ import { AiFillCloseCircle } from "react-icons/ai";
 import Logo from "@components/Logo";
 import templatePresets from "@utils/templatePresets";
 import SectionOrganizer from "@components/ResumeComponents/SectionOrganizer";
+import EditorProgress from "@components/ResumeComponents/EditorProgress";
 
 const CreateResume = () => {
     const [addContent, setAddContent] = useState(false);
@@ -54,6 +55,9 @@ const CreateResume = () => {
     const saveStatus = resumeData.saveStatus;
 
     const [ready, setReady] = useState(false);
+    const [renaming, setRenaming] = useState(false);
+    const [draftTitle, setDraftTitle] = useState("");
+    const [exportWarnings, setExportWarnings] = useState([]);
     const latestRef = useRef(resumeData);
     latestRef.current = resumeData;
     const chainRef = useRef(Promise.resolve());
@@ -153,8 +157,17 @@ const CreateResume = () => {
         ? "Not saved — will retry"
         : "Not saved yet";
 
-    const handleDownload = () => {
+    const handleDownload = (force = false) => {
         const fullName = resumeData?.personalInfo?.fullName;
+        const warnings = [];
+        if (!fullName) warnings.push("Add your name so employers know whose resume they are reading.");
+        if (!resumeData?.personalInfo?.email) warnings.push("Add an email address so employers can contact you.");
+        if (!(resumeData?.professionalExperience || []).length && !(resumeData?.projects || []).length) warnings.push("Add experience or a project to show what you can contribute.");
+        if (warnings.length && !force) {
+            setExportWarnings(warnings);
+            return;
+        }
+        setExportWarnings([]);
         const previousTitle = document.title;
         if (fullName) document.title = `${fullName} - CV`;
 
@@ -176,6 +189,17 @@ const CreateResume = () => {
         window.addEventListener("afterprint", restoreTitle);
         trackEvent("pdf_download");
         window.print();
+    };
+
+    const beginRename = () => {
+        setDraftTitle(displayTitle === "Untitled resume" ? "" : displayTitle);
+        setRenaming(true);
+    };
+
+    const commitRename = () => {
+        const nextTitle = draftTitle.trim();
+        if (nextTitle) dispatch(setResumeTitle(nextTitle));
+        setRenaming(false);
     };
 
     const handleCurrentComponent = (e) => {
@@ -255,16 +279,20 @@ const CreateResume = () => {
                                 <img src="/arrow.svg" alt="" className="w-6" />
                             </Link>
                             <div className="min-w-0">
-                                <div className="flex w-full cursor-pointer items-center space-x-2 pr-4 hover:opacity-80">
-                                    <p className="text-black truncate text-2xl font-extrabold">{displayTitle}</p>
-                                    <button
-                                        type="button"
-                                        aria-label="Rename resume"
-                                        className="border-none cursor-pointer appearance-none touch-manipulation flex items-center justify-center focus-visible:outline-blue-600 min-h-[30px] min-w-[30px] text-gray-400"
-                                    >
-                                        <img src="/edit.svg" alt="" className="w-5" />
-                                    </button>
-                                </div>
+                                {renaming ? (
+                                    <form className="flex items-center gap-2 pr-4" onSubmit={(event) => { event.preventDefault(); commitRename(); }}>
+                                        <label htmlFor="resume-title" className="sr-only">Resume name</label>
+                                        <input id="resume-title" autoFocus value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} onBlur={commitRename} className="min-w-0 max-w-[20rem] border-b-2 border-brand-600 bg-transparent text-xl font-extrabold outline-none" />
+                                        <button type="submit" aria-label="Save resume name" className="icon-button text-brand-700">✓</button>
+                                    </form>
+                                ) : (
+                                    <div className="flex w-full items-center space-x-2 pr-4">
+                                        <p className="text-black truncate text-2xl font-extrabold">{displayTitle}</p>
+                                        <button type="button" aria-label="Rename resume" onClick={beginRename} className="icon-button text-gray-400">
+                                            <img src="/edit.svg" alt="" className="w-5" />
+                                        </button>
+                                    </div>
+                                )}
                                 <p role="status" aria-live="polite" className={`pr-4 text-xs font-medium ${token && saveStatus === "error" ? "text-red-600" : "text-gray-400"}`}>
                                     {statusLabel}
                                 </p>
@@ -294,10 +322,19 @@ const CreateResume = () => {
                                 </button>
                             </div>
                         </div>
+                        <div className="editor-action-row">
+                            <span className="editor-action-label">Build flow</span>
+                            <button type="button" className={currentComponent === AVAILABLE_COMPONENTS.personalInfo ? "editor-action-active" : ""} onClick={() => setCurrentComponent(AVAILABLE_COMPONENTS.personalInfo)}>Content</button>
+                            <button type="button" className={currentComponent === "CUSTOMIZE" ? "editor-action-active" : ""} onClick={() => setCurrentComponent("CUSTOMIZE")}>Customize</button>
+                            <Link href="/cover-letter">Matching cover letter <span aria-hidden="true">↗</span></Link>
+                        </div>
                     </div>
 
                     {/* resume components */}
                     <div className="w-full max-w-[800px] pb-16 px-4 sm:px-0">
+                        {currentComponent === AVAILABLE_COMPONENTS.personalInfo && (
+                            <EditorProgress resumeData={resumeData} currentComponent={currentComponent} setCurrentComponent={setCurrentComponent} />
+                        )}
                         {currentComponent === AVAILABLE_COMPONENTS.skill && <Skills setCurrentComponent={setCurrentComponent} />}
                         {currentComponent === "CUSTOMIZE" && <Customization setCurrentComponent={setCurrentComponent} />}
                         {currentComponent === AVAILABLE_COMPONENTS.language && <Language setCurrentComponent={setCurrentComponent} />}
@@ -444,11 +481,13 @@ const CreateResume = () => {
                         <div className={`bg-white scale-[0.5] h-auto my-[2rem] w-[40rem] px-[3rem] overflow-hidden break-words`} style={previewStyle}>
                             <TemplateDemo resumeData={resumeData} />
                         </div>
+                        <div className="absolute bottom-5 left-5 right-5 flex justify-center gap-3"><button type="button" className="rounded-full bg-white px-4 py-3 text-sm font-bold" onClick={() => setDemo(false)}>Back to edit</button><button type="button" className="rounded-full bg-brand-600 px-4 py-3 text-sm font-bold text-white" onClick={() => handleDownload()}>Download</button></div>
                     </div>
                 </div>
             )}
 
             {addContent && <AddContent setAddContent={setAddContent} handleCurrentComponent={handleCurrentComponent} />}
+            {exportWarnings.length > 0 && <div className="import-review-backdrop" role="presentation"><section className="export-check" role="dialog" aria-modal="true" aria-labelledby="export-check-title"><p className="eyebrow">Export check</p><h2 id="export-check-title" className="mt-1 text-2xl font-extrabold">Your resume can still download</h2><p className="mt-2 text-sm leading-6 text-ink-500">Before you send it, consider these quick improvements:</p><ul className="mt-5 space-y-3 text-sm text-ink-700">{exportWarnings.map((warning) => <li key={warning} className="flex gap-2"><span className="text-brand-600">•</span>{warning}</li>)}</ul><div className="mt-6 flex flex-wrap justify-end gap-3"><button type="button" className="rounded-full border border-ink-300 px-5 py-3 text-sm font-bold" onClick={() => setExportWarnings([])}>Keep editing</button><button type="button" className="rounded-full bg-ink-950 px-5 py-3 text-sm font-bold text-white" onClick={() => handleDownload(true)}>Download anyway</button></div></section></div>}
         </div>
     );
 };
